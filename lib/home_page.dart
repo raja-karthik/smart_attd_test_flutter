@@ -88,235 +88,177 @@ class _MyHomePageState extends State<MyHomePage> {
                     ? ProfilePage()
                     : (currentIndex == 3 ? SettingsPage() : null))),
 
-        // appBar: AppBar(
-        //   title: Text(widget.title),
-        //   actions: <Widget>[
-        //     IconButton(icon: Icon(Icons.notifications), onPressed: () {})
-        //   ],
-        // ),
-        // body: Stack(
-        //   children: [
-        //     Container(
-        //       decoration: BoxDecoration(
-        //         image: DecorationImage(
-        //           image: AssetImage("assets/images/dashboard_bg.png"),
-        //           fit: BoxFit.cover,
+        bottomNavigationBar: new Theme(
+          data: Theme.of(context).copyWith(
+              // sets the background color of the `BottomNavigationBar`
+              canvasColor: Color(0xff0066ff),
+              // sets the active color of the `BottomNavigationBar` if `Brightness` is light
+              primaryColor: Colors.white,
+              textTheme: Theme.of(context).textTheme.copyWith(
+                    caption: new TextStyle(color: Colors.white30),
+                  )), // sets the inactive color of the `BottomNavigationBar`
+          child: new BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: currentIndex,
+            onTap: changePage,
+            items: [
+              new BottomNavigationBarItem(
+                icon: new Icon(Icons.home_outlined),
+                // label: 'Home',
+                title: new Text(
+                  'Home',
+                  style: GoogleFonts.montserrat(
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                activeIcon: new Icon(Icons.home),
+              ),
+              new BottomNavigationBarItem(
+                icon: new Icon(Icons.calendar_today_outlined),
+                // label: 'Calendar',
+                title: new Text(
+                  'Calendar',
+                  style: GoogleFonts.montserrat(
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                activeIcon: Icon(Icons.calendar_today_rounded),
+              ),
+              new BottomNavigationBarItem(
+                icon: Icon(Icons.account_circle_outlined),
+                //label: 'Profile',
+                title: new Text(
+                  'Profile',
+                  style: GoogleFonts.montserrat(
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                activeIcon: Icon(Icons.account_circle_rounded),
+              ),
+              new BottomNavigationBarItem(
+                icon: Icon(Icons.settings_outlined),
+                // label: 'Settings',
+                title: new Text(
+                  'Settings',
+                  style: GoogleFonts.montserrat(
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                activeIcon: Icon(Icons.settings_rounded),
+              ),
+            ],
+          ),
+        ),
+
+        //  bottomNavigationBar: BubbleBottomBar(
+        //     backgroundColor: Color(0xff0066ff),
+        //     hasNotch: true,
+        //     opacity: 1,
+        //     // backgroundColor:
+        //     currentIndex: currentIndex,
+        //     onTap: changePage,
+        //     borderRadius: BorderRadius.vertical(
+        //       top: Radius.circular(16),
+        //     ), //border radius doesn't work when the notch is enabled.
+        //     elevation: 8,
+        //     items: <BubbleBottomBarItem>[
+        //       BubbleBottomBarItem(
+        //         backgroundColor: Colors.white,
+        //         icon: Icon(
+        //           Icons.home_outlined,
+        //           color: Colors.white,
+        //         ),
+        //         activeIcon: Icon(
+        //           Icons.home,
+        //           color: Color(0xff0083fd),
+        //         ),
+        //         title: Text(
+        //           "Home",
+        //           style: GoogleFonts.montserrat(
+        //             textStyle: TextStyle(
+        //               fontWeight: FontWeight.w400,
+        //               color: Color(0xff0083fd),
+        //               fontSize: 13,
+        //             ),
+        //           ),
         //         ),
         //       ),
-        //     ),
-        //     Column(
-        //       children: [
-        //         Container(
-        //           padding: EdgeInsets.fromLTRB(20, 30, 20, 10),
-        //           child: Row(
-        //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //             children: [
-        //               Row(
-        //                 children: [
-        //                   Container(
-        //                     height: 80,
-        //                     width: 80,
-        //                     decoration: BoxDecoration(
-        //                         border: Border.all(color: Colors.white),
-        //                         borderRadius: BorderRadius.circular(40)),
-        //                     child: CircleAvatar(
-        //                       backgroundImage:
-        //                           AssetImage('assets/images/no_image.png'),
-        //                     ),
-        //                   ),
-        //                   SizedBox(
-        //                     width: 10,
-        //                   ),
-        //                   Text(
-        //                     "Name",
-        //                     style: GoogleFonts.montserrat(
-        //                       color: Colors.white,
-        //                       fontSize: 18,
-        //                       fontWeight: FontWeight.w500,
-        //                       letterSpacing: 1,
-        //                     ),
-        //                   ),
-        //                 ],
-        //               ),
-        //               Icon(
-        //                 Icons.notifications,
-        //                 color: Colors.white,
-        //                 size: 30.0,
-        //               )
-        //             ],
+        //       BubbleBottomBarItem(
+        //           backgroundColor: Colors.white,
+        //           icon: Icon(
+        //             Icons.calendar_today_outlined,
+        //             color: Colors.white,
+        //             size: 18,
         //           ),
-        //         ),
-        //         Container(
-        //           margin: EdgeInsets.symmetric(vertical: 20.0),
-        //           height: 50.0,
-        //           child: ListView(
-        //             scrollDirection: Axis.horizontal,
-        //             children: <Widget>[
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.red,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.blue,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.green,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.yellow,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.orange,
-        //               ),
-        //               Container(
-        //                 width: 60.0,
-        //                 color: Colors.red,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.blue,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.green,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.yellow,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.orange,
-        //               ),
-        //               Container(
-        //                 width: 60.0,
-        //                 color: Colors.red,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.blue,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.green,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.yellow,
-        //               ),
-        //               Container(
-        //                 width: 100.0,
-        //                 color: Colors.orange,
-        //               ),
-        //             ],
+        //           activeIcon: Icon(
+        //             Icons.calendar_today_rounded,
+        //             color: Color(0xff0083fd),
+        //             size: 18,
         //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ],
-        // ),
-
-        bottomNavigationBar: BubbleBottomBar(
-          backgroundColor: Color(0xff0066ff),
-          hasNotch: true,
-          opacity: 1,
-          // backgroundColor:
-          currentIndex: currentIndex,
-          onTap: changePage,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(16),
-          ), //border radius doesn't work when the notch is enabled.
-          elevation: 8,
-          items: <BubbleBottomBarItem>[
-            BubbleBottomBarItem(
-              backgroundColor: Colors.white,
-              icon: Icon(
-                Icons.home_outlined,
-                color: Colors.white,
-              ),
-              activeIcon: Icon(
-                Icons.home,
-                color: Color(0xff0083fd),
-              ),
-              title: Text(
-                "Home",
-                style: GoogleFonts.montserrat(
-                  textStyle: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xff0083fd),
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ),
-            BubbleBottomBarItem(
-                backgroundColor: Colors.white,
-                icon: Icon(
-                  Icons.calendar_today_outlined,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                activeIcon: Icon(
-                  Icons.calendar_today_rounded,
-                  color: Color(0xff0083fd),
-                  size: 18,
-                ),
-                title: Text(
-                  "Attendance",
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xff0083fd),
-                      fontSize: 13,
-                    ),
-                  ),
-                )),
-            BubbleBottomBarItem(
-                backgroundColor: Colors.white,
-                icon: Icon(
-                  Icons.account_circle_outlined,
-                  color: Colors.white,
-                ),
-                activeIcon: Icon(
-                  Icons.account_circle_rounded,
-                  color: Color(0xff0083fd),
-                ),
-                title: Text(
-                  "Profile",
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xff0083fd),
-                      fontSize: 13,
-                    ),
-                  ),
-                )),
-            BubbleBottomBarItem(
-                backgroundColor: Colors.white,
-                icon: Icon(
-                  Icons.settings_outlined,
-                  color: Colors.white,
-                ),
-                activeIcon: Icon(
-                  Icons.settings_rounded,
-                  color: Color(0xff0083fd),
-                ),
-                title: Text(
-                  "Settings",
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xff0083fd),
-                      fontSize: 13,
-                    ),
-                  ),
-                ))
-          ],
-        ),
+        //           title: Text(
+        //             "Attendance",
+        //             style: GoogleFonts.montserrat(
+        //               textStyle: TextStyle(
+        //                 fontWeight: FontWeight.w400,
+        //                 color: Color(0xff0083fd),
+        //                 fontSize: 13,
+        //               ),
+        //             ),
+        //           )),
+        //       BubbleBottomBarItem(
+        //           backgroundColor: Colors.white,
+        //           icon: Icon(
+        //             Icons.account_circle_outlined,
+        //             color: Colors.white,
+        //           ),
+        //           activeIcon: Icon(
+        //             Icons.account_circle_rounded,
+        //             color: Color(0xff0083fd),
+        //           ),
+        //           title: Text(
+        //             "Profile",
+        //             style: GoogleFonts.montserrat(
+        //               textStyle: TextStyle(
+        //                 fontWeight: FontWeight.w400,
+        //                 color: Color(0xff0083fd),
+        //                 fontSize: 13,
+        //               ),
+        //             ),
+        //           )),
+        //       BubbleBottomBarItem(
+        //           backgroundColor: Colors.white,
+        //           icon: Icon(
+        //             Icons.settings_outlined,
+        //             color: Colors.white,
+        //           ),
+        //           activeIcon: Icon(
+        //             Icons.settings_rounded,
+        //             color: Color(0xff0083fd),
+        //           ),
+        //           title: Text(
+        //             "Settings",
+        //             style: GoogleFonts.montserrat(
+        //               textStyle: TextStyle(
+        //                 fontWeight: FontWeight.w400,
+        //                 color: Color(0xff0083fd),
+        //                 fontSize: 13,
+        //               ),
+        //             ),
+        //           ))
+        //     ],
+        //   ),
       ),
     );
   }

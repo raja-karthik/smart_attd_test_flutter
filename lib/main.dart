@@ -5,88 +5,32 @@ import 'package:camera/camera.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_first_flutterapp/camera_page.dart';
 import 'package:my_first_flutterapp/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './map_page.dart';
-// import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:my_first_flutterapp/model/user_model.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:sms_otp_auto_verify/sms_otp_auto_verify.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
-import './calendar_page.dart';
 import './home_page.dart';
 
 List<CameraDescription> cameras;
 
 Future<void> main() async {
-  // var first = MyApp();
-  // var second = RandomWords();
-  // var home = HomePage();
-  // var camera = CameraApp();
   var login = LoginPage();
   var splash = SplashPage();
-  // var map = MapPage();
+
   WidgetsFlutterBinding.ensureInitialized();
   cameras = await availableCameras();
 
   runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
     initialRoute: '/',
     routes: {
       '/': (context) => splash,
       '/login': (context) => login,
-
-      // '/second': (context) => second,
-      // '/camera': (context) => camera,
-      // '/map': (context) => map,
     },
   ));
-}
-
-class MyInAppBrowser extends InAppBrowser {
-  @override
-  Future onLoadStart(String url) async {
-    print("\n\nStarted $url\n\n");
-  }
-
-  @override
-  Future onLoadStop(String url) async {
-    print("\n\nStopped $url\n\n");
-  }
-
-  @override
-  void onLoadError(String url, int code, String message) {
-    print("\n\nCan't load $url.. Error: $message\n\n");
-  }
-
-  @override
-  void onExit() {
-    print("\n\nBrowser closed!\n\n");
-  }
-}
-
-class MyChromeSafariBrowser extends ChromeSafariBrowser {
-  MyChromeSafariBrowser(browserFallback) : super(bFallback: browserFallback);
-
-  @override
-  void onOpened() {
-    print("ChromeSafari browser opened");
-  }
-
-  @override
-  void onCompletedInitialLoad() {
-    print("ChromeSafari browser initial load completed");
-  }
-
-  @override
-  void onClosed() {
-    print("ChromeSafari browser closed");
-  }
 }
 
 class OnBoardingPage extends StatefulWidget {
@@ -216,9 +160,6 @@ Widget _letsgoBtn(context) {
 }
 
 class LoginPage extends StatefulWidget {
-  // final ChromeSafariBrowser browser =
-  //     new MyChromeSafariBrowser(new MyInAppBrowser());
-
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -529,12 +470,6 @@ class _LoginPageState extends State<LoginPage> {
                 ..onTap = () => print('Tapped Privacy Policy'),
             ),
           ]),
-
-      // Text(
-      //   "By entering mobile number and activation code, you agree to our Terms and Conditions & Privacy Policy.",
-      //   textAlign: TextAlign.center,
-      //   style: GoogleFonts.montserrat(color: Colors.white.withOpacity(0.7)),
-      // ),
     );
   }
 
@@ -766,8 +701,7 @@ class _LoginPageState extends State<LoginPage> {
     var url = 'https://smartattendance.vaango.co/api/v0/employee/login';
     var response = await http.post(url, body: {
       'code': verifyCodeController.text,
-      'mobile': phoneController.text,
-      'profile': 'base 64'
+      'mobile': phoneController.text
     });
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');

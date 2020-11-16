@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:intl/intl.dart';
-// import 'dart:io' as Io;
+import 'dart:io' as Io;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +10,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:my_first_flutterapp/camera_page.dart';
+import 'package:my_first_flutterapp/home_page.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -37,6 +38,7 @@ class _MapPageState extends State<MapPage> {
   String _punchoutTime = '';
   bool _pinchinEnabled = false;
   bool _pinchoutEnabled = false;
+  String formattedDate;
   var datenow = new DateTime.now();
   CameraPosition initialPosition = CameraPosition(
     target: LatLng(0, 0),
@@ -44,12 +46,14 @@ class _MapPageState extends State<MapPage> {
   );
   Position _currentPosition;
   String _currentAddress;
+  var selectedMonth;
   var selectedDate;
   var selectedDay;
-  var selectedMonth;
+  bool _showLoading = true;
   @override
   void initState() {
     super.initState();
+
     _pinchinEnabled = false; // Enable punch in button
     _pinchoutEnabled = false;
     _getCurrentLocation();
@@ -58,26 +62,33 @@ class _MapPageState extends State<MapPage> {
 
   _loadAttendanceData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var selectedMonth = prefs.getString('selectedMonth');
+    selectedMonth = prefs.getString('selectedMonth');
     selectedDate = prefs.getString('selectedDate');
     selectedDay = prefs.getString('selectedDay');
     var formatter = new DateFormat('MMM');
     var formatterdate = new DateFormat('dd');
     String currMonth = formatter.format(datenow);
     String currDate = formatterdate.format(datenow);
+    if (selectedMonth == currMonth && selectedDate == currDate) {
+      // _getCurrentLocation();
+      _userSignInOutStatus();
+    } else {
+      _showLoading = false;
+    }
 
-    print('DATEEEEEEEEEEEE ${widget.selectedDateArr[0]['dt']}');
-    if (selectedMonth == currMonth) {
-      if (widget.selectedDateArr[0]['dt'] == currDate) {
-        // _getCurrentLocation();
-        _userSignInOutStatus();
-        _pinchinEnabled = true;
-      } else {
+    print('MONTHHHHHHHHHH $selectedMonth ==== $currMonth');
+    setState(() {
+      var sDArray = widget.selectedDateArr;
+      print('SDARRRRRRRRR $sDArray');
+      if (sDArray != null) {
         _punchinTime = widget.selectedDateArr[0]['in'];
         _punchoutTime =
             widget.selectedDateArr[widget.selectedDateArr.length - 1]['out'];
+      } else {
+        _punchinTime = '-';
+        _punchoutTime = '-';
       }
-    }
+    });
   }
 
   _userSignInOutStatus() async {
@@ -94,10 +105,20 @@ class _MapPageState extends State<MapPage> {
     print('Response body: ${response.body}');
     Map<String, dynamic> res = jsonDecode(response.body);
     print('After Decode $res');
-    if (response.statusCode == 200) {
-      if (res['status'] == 'success') {
-      } else {}
-    } else {}
+    setState(() {
+      if (response.statusCode == 200) {
+        _showLoading = false;
+        if (res['status'] == 'success') {
+          if (res['action'] == 'in') {
+            _pinchinEnabled = !res['disable'];
+          } else if (res['action'] == 'out') {
+            _pinchoutEnabled = !res['disable'];
+          }
+        } else {}
+      } else {
+        _showLoading = false;
+      }
+    });
   }
 
   _getCurrentLocation() async {
@@ -105,8 +126,19 @@ class _MapPageState extends State<MapPage> {
         .then((Position position) {
       setState(() {
         _currentPosition = position;
-        latitudeData = '${position.latitude}';
-        longitudeData = '${position.longitude}';
+        var formatter = new DateFormat('MMM');
+        var formatterdate = new DateFormat('dd');
+        String currMonth = formatter.format(datenow);
+        String currDate = formatterdate.format(datenow);
+
+        if (selectedMonth == currMonth && selectedDate == currDate) {
+          latitudeData = '${position.latitude}';
+          longitudeData = '${position.longitude}';
+        } else {
+          latitudeData = '0';
+          longitudeData = '0';
+        }
+
         lati = double.parse(latitudeData);
         longi = double.parse(longitudeData);
         initialPosition = CameraPosition(
@@ -123,7 +155,19 @@ class _MapPageState extends State<MapPage> {
         ));
         _goToCurrent();
       });
-      _getAddressFromLatLng();
+      var formatter = new DateFormat('MMM');
+      var formatterdate = new DateFormat('dd');
+      String currMonth = formatter.format(datenow);
+      String currDate = formatterdate.format(datenow);
+      if (selectedMonth == currMonth && selectedDate == currDate) {
+        _getAddressFromLatLng();
+      } else {
+        setState(() {
+          _currentAddress = "-";
+          _subLocality = '-';
+          _locality = '-';
+        });
+      }
     }).catchError((error) {
       print(error);
     });
@@ -155,6 +199,7 @@ class _MapPageState extends State<MapPage> {
       //     builder: (context) => CameraPage(cameras),
       //   ),
       // );
+
       final imagepath = await Navigator.push(
         context,
         PageTransition(
@@ -163,25 +208,68 @@ class _MapPageState extends State<MapPage> {
         ),
       );
       if (imagepath != null) {
-        var formatter = new DateFormat.jm();
-        String formattedDate = formatter.format(datenow);
-        print('DATEEEEEEEEEEEE $formattedDate');
-        setState(() {
-          if (type == 'in') {
-            _punchinTime = formattedDate;
-            _pinchinEnabled = false;
-            _pinchoutEnabled = true;
-          } else if (type == 'out') {
-            _punchoutTime = formattedDate;
-            _pinchoutEnabled = false;
-          }
-        });
+        _showLoading = true;
+        final bytes = Io.File(imagepath).readAsBytesSync();
+        String imgBase64 = base64Encode(bytes);
+        _saveAttendance(imgBase64);
       }
-      print(imagepath);
-      // setState(() {
-      //   _imagePath = imagepath;
-      // });
     });
+  }
+
+  _saveAttendance(imgBase64) async {
+    var url = 'https://smartattendance.vaango.co/api/v0/employee/attendance';
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    var input = {
+      'profile': 'data:image/jpeg;base64, $imgBase64',
+      'time': datenow.toString(),
+      'token': token,
+      'temp': '0',
+      'lat': latitudeData,
+      'lng': longitudeData
+    };
+    String jsnstr = jsonEncode(input);
+    print('API INPUT $imgBase64');
+    print(
+        'API INPUT ${input['token']} - ${input['time']} - ${input['temp']} - ${input['lat']} - ${input['lng']}');
+
+    var response = await http.post(url, body: input);
+
+    print('Response body: ${response.body}');
+    Map<String, dynamic> res = jsonDecode(response.body);
+    print('After Decode $res');
+    if (response.statusCode == 200) {
+      setState(() {
+        if (res['status'] == 'success') {
+          // if (res['data'] != null) {
+          Navigator.push(
+            context,
+            PageTransition(
+              type: PageTransitionType.fade,
+              child: MyHomePage(title: 'Home'),
+            ),
+          );
+          // }
+        } else {
+          Navigator.push(
+            context,
+            PageTransition(
+              type: PageTransitionType.fade,
+              child: MyHomePage(title: 'Home'),
+            ),
+          );
+        }
+      });
+    } else {
+      print('RES CODE = ${res['status']}');
+      Navigator.push(
+        context,
+        PageTransition(
+          type: PageTransitionType.fade,
+          child: MyHomePage(title: 'Home'),
+        ),
+      );
+    }
   }
 
   @override
@@ -190,319 +278,344 @@ class _MapPageState extends State<MapPage> {
       title: 'Google Maps',
       home: new Scaffold(
         // appBar: AppBar(title: Text('Map Page')),
-        body: Stack(
-          children: [
-            Container(
-              height: 450,
-              child: GoogleMap(
-                myLocationEnabled: true,
-                liteModeEnabled: true,
-                mapType: MapType.normal,
-                initialCameraPosition: initialPosition,
-                onMapCreated: (GoogleMapController controller) {
-                  _controller.complete(controller);
-                  setState(() {
-                    _markers.add(Marker(
-                      markerId: MarkerId('1'),
-                      position: LatLng(lati, longi),
-                      icon: BitmapDescriptor.defaultMarker,
-                    ));
-                  });
-                },
-                markers: Set.from(_markers),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(
-                top: 50,
-                left: 20,
-              ),
-              child: IconButton(
-                icon: Icon(Icons.keyboard_backspace),
-                color: Color(0xff0083fd),
-                iconSize: 30,
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-              ),
-            ),
-            Container(
-                margin: EdgeInsets.only(
-                  top: 400,
-                ),
-                child: Stack(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage("assets/images/dashboard_bg.png"),
-                          fit: BoxFit.cover,
-                        ),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(25.0),
-                          topRight: Radius.circular(25.0),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xffa3b1c6), // darker color
-                          ),
-                          BoxShadow(
-                            color: Color(0xffe0e5ec), // background color
-                            spreadRadius: 8.0,
-                            blurRadius: 12.0,
-                          ),
-                        ],
-                      ),
+        body: _showLoading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : Stack(
+                children: [
+                  Container(
+                    height: 550,
+                    child: GoogleMap(
+                      myLocationEnabled: true,
+                      mapToolbarEnabled: false,
+                      zoomControlsEnabled: false,
+                      zoomGesturesEnabled: false,
+                      myLocationButtonEnabled: false,
+                      scrollGesturesEnabled: false,
+                      mapType: MapType.normal,
+                      initialCameraPosition: initialPosition,
+                      onMapCreated: (GoogleMapController controller) {
+                        _controller.complete(controller);
+                        setState(() {
+                          _markers.add(Marker(
+                            markerId: MarkerId('1'),
+                            position: LatLng(lati, longi),
+                            icon: BitmapDescriptor.defaultMarker,
+                          ));
+                        });
+                      },
+                      markers: Set.from(_markers),
                     ),
-                    Container(
-                      margin: EdgeInsets.fromLTRB(50, 50, 50, 10),
-                      child: Column(
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                      top: 50,
+                      left: 20,
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.keyboard_backspace),
+                      color: Color(0xff0083fd),
+                      iconSize: 30,
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ),
+                  Container(
+                      margin: EdgeInsets.only(
+                        top: 500,
+                      ),
+                      child: Stack(
                         children: [
                           Container(
-                            padding: EdgeInsets.fromLTRB(20, 0, 40, 0),
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Color(0xff00BBFB),
-                                width: 1.5,
+                              image: DecorationImage(
+                                image: AssetImage(
+                                    "assets/images/dashboard_bg.png"),
+                                fit: BoxFit.cover,
                               ),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(25.0),
+                                topRight: Radius.circular(25.0),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xff000000), // darker color
+                                  color: Color(0xffa3b1c6), // darker color
                                 ),
                                 BoxShadow(
-                                  color: Color(0xff404040), // background color
-                                  spreadRadius: -5.0,
-                                  blurRadius: 6.0,
+                                  color: Color(0xffe0e5ec), // background color
+                                  spreadRadius: 8.0,
+                                  blurRadius: 12.0,
                                 ),
                               ],
-                              //color: Color(0xff0083fd),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color(0xff0083fd),
-                                  Color(0xff2394fd),
-                                ],
-                                begin: const FractionalOffset(0.0, 0.0),
-                                end: const FractionalOffset(1.0, 0.0),
-                                stops: [0.0, 1.0],
-                                tileMode: TileMode.clamp,
-                              ),
                             ),
-                            margin: EdgeInsets.only(
-                              bottom: 15.0,
-                            ),
-                            height: 110,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          ),
+                          Container(
+                            margin: EdgeInsets.fromLTRB(50, 50, 50, 10),
+                            child: Column(
                               children: [
                                 Container(
-                                  height: 80,
-                                  width: 100,
+                                  padding: EdgeInsets.fromLTRB(20, 0, 40, 0),
                                   decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: AssetImage(
-                                          "assets/images/calendar_blue.png"),
+                                    border: Border.all(
+                                      color: Color(0xff00BBFB),
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Color(0xff000000), // darker color
+                                      ),
+                                      BoxShadow(
+                                        color: Color(
+                                            0xff404040), // background color
+                                        spreadRadius: -5.0,
+                                        blurRadius: 6.0,
+                                      ),
+                                    ],
+                                    //color: Color(0xff0083fd),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xff0083fd),
+                                        Color(0xff2394fd),
+                                      ],
+                                      begin: const FractionalOffset(0.0, 0.0),
+                                      end: const FractionalOffset(1.0, 0.0),
+                                      stops: [0.0, 1.0],
+                                      tileMode: TileMode.clamp,
                                     ),
                                   ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  margin: EdgeInsets.only(
+                                    bottom: 15.0,
+                                  ),
+                                  height: 110,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
-                                        padding: EdgeInsets.only(top: 5),
-                                        child: Text(
-                                          selectedDate != null
-                                              ? selectedDate
-                                              : '-',
-                                          //'11',
-                                          style: GoogleFonts.montserrat(
-                                              textStyle: TextStyle(
-                                            fontSize: 30,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          )),
+                                        height: 80,
+                                        width: 100,
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: AssetImage(
+                                                "assets/images/calendar_blue.png"),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              padding: EdgeInsets.only(top: 5),
+                                              child: Text(
+                                                selectedDate != null
+                                                    ? selectedDate
+                                                    : '-',
+                                                //'11',
+                                                style: GoogleFonts.montserrat(
+                                                    textStyle: TextStyle(
+                                                  fontSize: 30,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white,
+                                                )),
+                                              ),
+                                            ),
+                                            Text(
+                                              selectedDay != null
+                                                  ? selectedDay.toUpperCase()
+                                                  : '-',
+                                              // '11',
+                                              style: GoogleFonts.montserrat(
+                                                  textStyle: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                              )),
+                                            )
+                                          ],
                                         ),
                                       ),
-                                      Text(
-                                        selectedDay != null
-                                            ? selectedDay.toUpperCase()
-                                            : '-',
-                                        // '11',
-                                        style: GoogleFonts.montserrat(
-                                            textStyle: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                        )),
+                                      Container(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              size: 18,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(
+                                              height: 8,
+                                            ),
+                                            Text(
+                                              '$_subLocality' != ''
+                                                  ? '$_subLocality'
+                                                  : '-',
+                                              style: GoogleFonts.montserrat(
+                                                  color: Colors.white),
+                                            ),
+                                            SizedBox(
+                                              height: 4,
+                                            ),
+                                            Text(
+                                              '$_locality' != ''
+                                                  ? '$_locality'
+                                                  : '-',
+                                              style: GoogleFonts.montserrat(
+                                                  color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
                                       )
                                     ],
                                   ),
                                 ),
+                                SizedBox(
+                                  height: 20,
+                                ),
                                 Container(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Icon(
-                                        Icons.location_on,
-                                        size: 18,
-                                        color: Colors.white,
+                                      RaisedButton(
+                                        elevation: 8,
+                                        disabledElevation: 3,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          side: BorderSide(
+                                            color: Colors.white,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        padding: EdgeInsets.all(0.0),
+                                        color: Color(0xff00bbfb),
+                                        disabledColor: Colors.white,
+                                        textColor: Colors.white,
+                                        disabledTextColor: Colors.grey[400],
+                                        highlightElevation: 10,
+                                        splashColor: Colors.white30,
+                                        onPressed: _pinchinEnabled
+                                            ? () => openCamera('in')
+                                            : null,
+                                        child: Ink(
+                                          width: 120,
+                                          height: 110,
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: 120.0,
+                                                minHeight: 110.0),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Punch in',
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Text(
+                                                  _punchinTime != ''
+                                                      ? _punchinTime
+                                                      : '-',
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                      SizedBox(
-                                        height: 8,
-                                      ),
-                                      Text(
-                                        '$_subLocality' != ''
-                                            ? '$_subLocality'
-                                            : '-',
-                                        style: GoogleFonts.montserrat(
-                                            color: Colors.white),
-                                      ),
-                                      SizedBox(
-                                        height: 4,
-                                      ),
-                                      Text(
-                                        '$_locality' != '' ? '$_locality' : '-',
-                                        style: GoogleFonts.montserrat(
-                                            color: Colors.white),
+                                      RaisedButton(
+                                        elevation: 8,
+                                        disabledElevation: 3,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          side: BorderSide(
+                                            color: Colors.white,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        padding: EdgeInsets.all(0.0),
+                                        color: Color(0xff00bbfb),
+                                        disabledColor: Colors.white,
+                                        textColor: Colors.white,
+                                        disabledTextColor: Colors.grey[400],
+                                        highlightElevation: 10,
+                                        splashColor: Colors.white30,
+                                        onPressed: _pinchoutEnabled
+                                            ? () => openCamera('out')
+                                            : null,
+                                        child: Ink(
+                                          width: 120,
+                                          height: 110,
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: 120.0,
+                                                minHeight: 110.0),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Punch out',
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Text(
+                                                  _punchoutTime != ''
+                                                      ? _punchoutTime
+                                                      : '-',
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
                                 )
                               ],
                             ),
-                          ),
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Container(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                RaisedButton(
-                                  elevation: 8,
-                                  disabledElevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    side: BorderSide(
-                                      color: Colors.white,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  padding: EdgeInsets.all(0.0),
-                                  color: Color(0xff00bbfb),
-                                  disabledColor: Colors.white,
-                                  textColor: Colors.white,
-                                  disabledTextColor: Colors.grey[400],
-                                  highlightElevation: 10,
-                                  splashColor: Colors.white30,
-                                  onPressed: _pinchinEnabled
-                                      ? () => openCamera('in')
-                                      : null,
-                                  child: Ink(
-                                    width: 120,
-                                    height: 110,
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                          maxWidth: 120.0, minHeight: 110.0),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Punch in',
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: TextStyle(
-                                                fontWeight: FontWeight.w300,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-                                          Text(
-                                            _punchinTime != ''
-                                                ? _punchinTime
-                                                : '-',
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                RaisedButton(
-                                  elevation: 8,
-                                  disabledElevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    side: BorderSide(
-                                      color: Colors.white,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  padding: EdgeInsets.all(0.0),
-                                  color: Color(0xff00bbfb),
-                                  disabledColor: Colors.white,
-                                  textColor: Colors.white,
-                                  disabledTextColor: Colors.grey[400],
-                                  highlightElevation: 10,
-                                  splashColor: Colors.white30,
-                                  onPressed: _pinchoutEnabled
-                                      ? () => openCamera('out')
-                                      : null,
-                                  child: Ink(
-                                    width: 120,
-                                    height: 110,
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                          maxWidth: 120.0, minHeight: 110.0),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Punch out',
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: TextStyle(
-                                                fontWeight: FontWeight.w300,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-                                          Text(
-                                            _punchoutTime != ''
-                                                ? _punchoutTime
-                                                : '-',
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           )
                         ],
-                      ),
-                    )
-                  ],
-                )),
-          ],
-        ),
+                      )),
+                ],
+              ),
       ),
     );
   }

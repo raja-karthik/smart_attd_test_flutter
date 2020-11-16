@@ -25,7 +25,6 @@ dependencies:
     sdk: flutter
   google_fonts: ^1.1.1
   page_transition: ^1.1.7+2
-  flutter_inappwebview: ^4.0.0+4
   pin_code_fields: ^6.0.0
   flutter_calendar_carousel: ^1.5.1
   bubble_bottom_bar: ^1.2.0
