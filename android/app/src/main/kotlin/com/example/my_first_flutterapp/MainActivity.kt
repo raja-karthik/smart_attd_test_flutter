@@ -1,4 +1,4 @@
-package com.example.my_first_flutterapp
+package co.vaango.smartattendance
 
 import io.flutter.embedding.android.FlutterActivity
 

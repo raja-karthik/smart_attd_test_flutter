@@ -105,23 +105,27 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     return showDialog(
           context: context,
           builder: (context) => new AlertDialog(
-            title: new Text('Are you sure?'),
-            content: new Text('Do you want to exit an App'),
+            title: new Text('Confirm'),
+            content: new Text('Are you sure you want to exit ?'),
             actions: <Widget>[
               new GestureDetector(
-                onTap: () => Navigator.of(context).pop(false),
+                onTap: () => Io.exit(0),
                 child: Container(
                   padding: EdgeInsets.all(10),
-                  child: Text("NO"),
+                  child: Text("YES"),
                 ),
               ),
               SizedBox(height: 16),
               new GestureDetector(
-                  onTap: () => Io.exit(0),
-                  child: Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text("YES"),
-                  )),
+                onTap: () => Navigator.of(context).pop(false),
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    "NO",
+                    style: TextStyle(color: Color(0xff0083fd)),
+                  ),
+                ),
+              ),
             ],
           ),
         ) ??
@@ -756,23 +760,27 @@ class _LoginPageState extends State<LoginPage> {
       return showDialog(
             context: context,
             builder: (context) => new AlertDialog(
-              title: new Text('Are you sure?'),
-              content: new Text('Do you want to exit an App'),
+              title: new Text('Confirm'),
+              content: new Text('Are you sure you want to exit ?'),
               actions: <Widget>[
                 new GestureDetector(
-                  onTap: () => Navigator.of(context).pop(false),
+                  onTap: () => Io.exit(0),
                   child: Container(
                     padding: EdgeInsets.all(10),
-                    child: Text("NO"),
+                    child: Text("YES"),
                   ),
                 ),
                 SizedBox(height: 16),
                 new GestureDetector(
-                    onTap: () => Io.exit(0),
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text("YES"),
-                    )),
+                  onTap: () => Navigator.of(context).pop(false),
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text(
+                      "NO",
+                      style: TextStyle(color: Color(0xff0083fd)),
+                    ),
+                  ),
+                ),
               ],
             ),
           ) ??

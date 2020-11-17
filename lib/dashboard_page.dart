@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import './main.dart';
 import './map_page.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:cool_alert/cool_alert.dart';
 
 class DashboardHomePage extends StatefulWidget {
   @override
@@ -54,6 +55,7 @@ class _DashboardHomePageState extends State<DashboardHomePage>
 
   _handleTabSelection() async {
     setState(() {
+      attendanceFinal = null;
       _showLoading = true;
       _currentIndex = _tabController.index;
       var monthyear = months[_currentIndex]['monthYear'];
@@ -128,7 +130,7 @@ class _DashboardHomePageState extends State<DashboardHomePage>
     print('API INPUT $jsnstr');
 
     var response = await http.post(url, body: input);
-
+    print('Response body: ${response.statusCode}');
     print('Response body: ${response.body}');
     Map<String, dynamic> res = jsonDecode(response.body);
     print('After Decode $res');
@@ -143,13 +145,45 @@ class _DashboardHomePageState extends State<DashboardHomePage>
 
             print('GROUP BY $attendanceFinal');
           }
-        } else {}
+        } else {
+          if (res['token_invalid']) {
+            CoolAlert.show(
+              context: context,
+              barrierDismissible: false,
+              confirmBtnText: 'OK',
+              confirmBtnColor: Color(0xff0083fd),
+              onConfirmBtnTap: () {
+                logOut();
+              },
+              type: CoolAlertType.warning,
+              title: "Token Expired",
+              text:
+                  "Looks like you logged into another device, Please login here to continue using in this device",
+            );
+          }
+        }
       });
     } else {
       setState(() {
         _showLoading = false;
       });
     }
+  }
+
+  logOut() {
+    removeValues();
+    Navigator.push(
+      context,
+      PageTransition(
+        type: PageTransitionType.fade,
+        child: LoginPage(),
+      ),
+    );
+  }
+
+  removeValues() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
   }
 
   @override
@@ -220,244 +254,298 @@ class _DashboardHomePageState extends State<DashboardHomePage>
             ],
           ),
           body: _showLoading
-              ? Center(
-                  child: CircularProgressIndicator(),
+              ? Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("assets/images/content_bg.png"),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  ],
                 )
               : Stack(
                   children: [
-                    // Container(
-                    //   decoration: BoxDecoration(
-                    //     image: DecorationImage(
-                    //       image: AssetImage("assets/images/dashboard_bg.png"),
-                    //       fit: BoxFit.cover,
-                    //     ),
-                    //   ),
-                    // ),
+                    Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("assets/images/content_bg.png"),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                     new TabBarView(
                       controller: _tabController,
                       children:
                           List<Widget>.generate(months.length, (int index) {
                         // print(categories[index]);
                         // var monthAttd = attendance[index];
-                        return new Container(
-                          child: ListView.builder(
-                              padding:
-                                  const EdgeInsets.fromLTRB(15, 20, 15, 20),
-                              itemCount: selectedList.length,
-                              itemBuilder: (BuildContext context, int numb) {
-                                DateTime date = DateTime.parse(
-                                    selectedList[numb].toString());
-                                var formatdt = new DateFormat('dd');
-                                var formatday = new DateFormat('EEE');
-                                var formateddt = formatdt.format(date);
-                                var formatedday = formatday.format(date);
+                        bool _showCurrentData;
+                        if (index == _currentIndex) {
+                          _showCurrentData = false;
+                        } else {
+                          _showCurrentData = true;
+                        }
 
-                                var dt =
-                                    new DateFormat('yMd').format(currentDate);
-                                var dt2 = new DateFormat('yMd').format(date);
+                        return _showCurrentData
+                            ? new Container()
+                            : new Container(
+                                child: ListView.builder(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        15, 20, 15, 20),
+                                    itemCount: selectedList.length,
+                                    itemBuilder:
+                                        (BuildContext context, int numb) {
+                                      DateTime date = DateTime.parse(
+                                          selectedList[numb].toString());
+                                      var formatdt = new DateFormat('dd');
+                                      var formatday = new DateFormat('EEE');
+                                      var formateddt = formatdt.format(date);
+                                      var formatedday = formatday.format(date);
 
-                                var todayBg = dt.compareTo(dt2); //if 0
+                                      var dt = new DateFormat('yMd')
+                                          .format(currentDate);
+                                      var dt2 =
+                                          new DateFormat('yMd').format(date);
 
-                                var _punchin = '-', _punchout = '-';
-                                var sArr;
-                                if (attendanceFinal != null) {
-                                  if (attendanceFinal
-                                      .containsKey('$formateddt')) {
-                                    sArr = attendanceFinal['$formateddt'];
-                                    _punchin = sArr[0]['in'];
-                                    _punchout = sArr[sArr.length - 1]['out'];
-                                  } else {
-                                    sArr = [];
-                                  }
-                                }
+                                      var todayBg = dt.compareTo(dt2); //if 0
 
-                                return GestureDetector(
-                                  onTap: () async {
-                                    print("Ontapped");
-                                    SharedPreferences prefs =
-                                        await SharedPreferences.getInstance();
-                                    prefs.setString('selectedDate', formateddt);
-                                    prefs.setString('selectedDay', formatedday);
-                                    Navigator.push(
-                                      context,
-                                      PageTransition(
-                                        type: PageTransitionType.fade,
-                                        child: MapPage(selectedDateArr: sArr),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.fromLTRB(20, 0, 40, 0),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.white),
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: todayBg == 0
-                                          ? Color(0xff0083fd)
-                                          : Colors.grey.withOpacity(0.3),
-                                    ),
-                                    margin: EdgeInsets.only(
-                                      bottom: 15.0,
-                                    ),
-                                    height: 100,
-                                    //  color: Color(0xff017EFD),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          height: 60,
-                                          width: 80,
-                                          decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                              image: AssetImage(
-                                                  "assets/images/calendar_grey.png"),
+                                      var _punchin = '-', _punchout = '-';
+                                      var sArr;
+                                      if (attendanceFinal != null) {
+                                        if (attendanceFinal
+                                            .containsKey('$formateddt')) {
+                                          sArr = attendanceFinal['$formateddt'];
+                                          _punchin = sArr[0]['in'];
+                                          _punchout =
+                                              sArr[sArr.length - 1]['out'];
+                                        } else {
+                                          sArr = [];
+                                        }
+                                      }
+
+                                      return GestureDetector(
+                                        onTap: () async {
+                                          print("Ontapped");
+                                          SharedPreferences prefs =
+                                              await SharedPreferences
+                                                  .getInstance();
+                                          prefs.setString(
+                                              'selectedDate', formateddt);
+                                          prefs.setString(
+                                              'selectedDay', formatedday);
+                                          Navigator.push(
+                                            context,
+                                            PageTransition(
+                                              type: PageTransitionType.fade,
+                                              child: MapPage(
+                                                  selectedDateArr: sArr),
                                             ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding:
+                                              EdgeInsets.fromLTRB(20, 0, 40, 0),
+                                          decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.white),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            color: todayBg == 0
+                                                ? Color(0xff0083fd)
+                                                : Colors.grey.withOpacity(0.3),
                                           ),
-                                          child: Column(
+                                          margin: EdgeInsets.only(
+                                            bottom: 15.0,
+                                          ),
+                                          height: 100,
+                                          //  color: Color(0xff017EFD),
+                                          child: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Container(
-                                                padding:
-                                                    EdgeInsets.only(top: 5),
-                                                child: Text(
-                                                  formateddt,
-                                                  style: GoogleFonts.montserrat(
-                                                      textStyle: TextStyle(
-                                                    fontSize: 22,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: todayBg == 0
-                                                        ? Colors.white
-                                                        : Colors.grey
-                                                            .withOpacity(.8),
-                                                  )),
+                                                height: 60,
+                                                width: 80,
+                                                decoration: BoxDecoration(
+                                                  image: DecorationImage(
+                                                    image: AssetImage(
+                                                        "assets/images/calendar_grey.png"),
+                                                  ),
+                                                ),
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      padding: EdgeInsets.only(
+                                                          top: 5),
+                                                      child: Text(
+                                                        formateddt,
+                                                        style: GoogleFonts
+                                                            .montserrat(
+                                                                textStyle:
+                                                                    TextStyle(
+                                                          fontSize: 22,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: todayBg == 0
+                                                              ? Colors.white
+                                                              : Colors.grey
+                                                                  .withOpacity(
+                                                                      .8),
+                                                        )),
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      formatedday.toUpperCase(),
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                              textStyle:
+                                                                  TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: todayBg == 0
+                                                            ? Colors.white
+                                                            : Colors.grey
+                                                                .withOpacity(
+                                                                    .8),
+                                                      )),
+                                                    )
+                                                  ],
                                                 ),
                                               ),
-                                              Text(
-                                                formatedday.toUpperCase(),
-                                                style: GoogleFonts.montserrat(
-                                                    textStyle: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: todayBg == 0
-                                                      ? Colors.white
-                                                      : Colors.grey
-                                                          .withOpacity(.8),
-                                                )),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    'Punch in',
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle: TextStyle(
-                                                        color: todayBg == 0
-                                                            ? Colors.white
-                                                            : Colors.grey
-                                                                .withOpacity(
-                                                                    .8),
-                                                        //Color(0xffD1D3D4),
-                                                        fontWeight:
-                                                            FontWeight.w300,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 6,
-                                                  ),
-                                                  Text(
-                                                    _punchin,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle: TextStyle(
-                                                        color: todayBg == 0
-                                                            ? Colors.white
-                                                            : Colors.grey
-                                                                .withOpacity(
-                                                                    .8),
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
                                               Container(
-                                                margin: EdgeInsets.fromLTRB(
-                                                    10, 0, 10, 0),
-                                                height: 40,
-                                                width: 1,
-                                                color: todayBg == 0
-                                                    ? Colors.white
-                                                        .withOpacity(.4)
-                                                    : Colors.grey
-                                                        .withOpacity(.4),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Text(
+                                                          'Punch in',
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                TextStyle(
+                                                              color: todayBg ==
+                                                                      0
+                                                                  ? Colors.white
+                                                                  : Colors.grey
+                                                                      .withOpacity(
+                                                                          .8),
+                                                              //Color(0xffD1D3D4),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300,
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 6,
+                                                        ),
+                                                        Text(
+                                                          _punchin,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                TextStyle(
+                                                              color: todayBg ==
+                                                                      0
+                                                                  ? Colors.white
+                                                                  : Colors.grey
+                                                                      .withOpacity(
+                                                                          .8),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Container(
+                                                      margin:
+                                                          EdgeInsets.fromLTRB(
+                                                              10, 0, 10, 0),
+                                                      height: 40,
+                                                      width: 1,
+                                                      color: todayBg == 0
+                                                          ? Colors.white
+                                                              .withOpacity(.4)
+                                                          : Colors.grey
+                                                              .withOpacity(.4),
+                                                    ),
+                                                    Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Text(
+                                                          'Punch out',
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                TextStyle(
+                                                              color: todayBg ==
+                                                                      0
+                                                                  ? Colors.white
+                                                                  : Colors.grey
+                                                                      .withOpacity(
+                                                                          .8),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300,
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 6,
+                                                        ),
+                                                        Text(
+                                                          _punchout,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                TextStyle(
+                                                              color: todayBg ==
+                                                                      0
+                                                                  ? Colors.white
+                                                                  : Colors.grey
+                                                                      .withOpacity(
+                                                                          .8),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
                                               ),
-                                              Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    'Punch out',
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle: TextStyle(
-                                                        color: todayBg == 0
-                                                            ? Colors.white
-                                                            : Colors.grey
-                                                                .withOpacity(
-                                                                    .8),
-                                                        fontWeight:
-                                                            FontWeight.w300,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 6,
-                                                  ),
-                                                  Text(
-                                                    _punchout,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle: TextStyle(
-                                                        color: todayBg == 0
-                                                            ? Colors.white
-                                                            : Colors.grey
-                                                                .withOpacity(
-                                                                    .8),
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              )
                                             ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }),
-                        );
+                                      );
+                                    }),
+                              );
                       }),
                     ),
                   ],

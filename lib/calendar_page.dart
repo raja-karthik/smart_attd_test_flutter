@@ -12,35 +12,29 @@ class CalendarPage extends StatefulWidget {
 }
 
 List<DateTime> presentDates = [
-  DateTime(2020, 10, 28),
-  DateTime(2020, 10, 29),
-  DateTime(2020, 10, 30),
-  DateTime(2020, 10, 31),
-  DateTime(2020, 11, 1),
   DateTime(2020, 11, 3),
   DateTime(2020, 11, 4),
   DateTime(2020, 11, 6),
+  DateTime(2020, 11, 9),
+  DateTime(2020, 11, 10),
+  DateTime(2020, 11, 11),
+  DateTime(2020, 11, 13),
+  DateTime(2020, 11, 16),
 ];
-List<DateTime> presentDates2 = [
-  DateTime(2020, 10, 1),
-  DateTime(2020, 10, 3),
-  DateTime(2020, 10, 4),
-  DateTime(2020, 10, 6),
+
+List<DateTime> earlyDates = [
+  DateTime(2020, 11, 12),
 ];
 List<DateTime> absentDates = [
   DateTime(2020, 11, 2),
   DateTime(2020, 11, 5),
-];
-List<DateTime> absentDates2 = [
-  DateTime(2020, 10, 2),
-  DateTime(2020, 10, 5),
 ];
 
 class _CalendarPageState extends State<CalendarPage> {
   DateTime currentDate = DateTime.now();
   static Widget _presentIcon(String day) => Container(
         decoration: BoxDecoration(
-          color: Color(0xff0066ff),
+          color: Color(0xff00bbfb),
           borderRadius: BorderRadius.all(
             Radius.circular(1000),
           ),
@@ -56,6 +50,23 @@ class _CalendarPageState extends State<CalendarPage> {
       );
 
   static Widget _absentIcon(String day) => Container(
+        decoration: BoxDecoration(
+          color: Colors.orangeAccent,
+          borderRadius: BorderRadius.all(
+            Radius.circular(1000),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            day,
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+
+  static Widget _earlyIcon(String day) => Container(
         decoration: BoxDecoration(
           color: Colors.redAccent,
           borderRadius: BorderRadius.all(
@@ -80,6 +91,8 @@ class _CalendarPageState extends State<CalendarPage> {
 
   var len = presentDates.length;
   var len2 = absentDates.length;
+  var len3 = earlyDates.length;
+
   double cHeight;
 
   // Future<bool> _onBackPressed() {
@@ -114,28 +127,44 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
       );
     }
+    for (int i = 0; i < len3; i++) {
+      _markedDateMap.add(
+        earlyDates[i],
+        new Event(
+          date: earlyDates[i],
+          title: 'Event 5',
+          icon: _earlyIcon(
+            earlyDates[i].day.toString(),
+          ),
+        ),
+      );
+    }
     _calendarCarouselNoHeader = CalendarCarousel<Event>(
       height: cHeight * 0.54,
       weekendTextStyle: TextStyle(
-        color: Colors.white54,
+        color: Colors.black38,
       ),
       // daysTextStyle: TextStyle(
       //   color: Colors.blueGrey,
       // ),
       weekdayTextStyle: TextStyle(
-        color: Colors.white60,
+        color: Colors.black38,
       ),
+
       headerTextStyle: TextStyle(
         fontSize: 16,
-        color: Colors.white,
+        color: Colors.black,
         fontWeight: FontWeight.w500,
+        // backgroundColor: Colors.blue,
       ),
       daysTextStyle: TextStyle(
-        color: Colors.white,
+        color: Colors.black54,
         fontWeight: FontWeight.w500,
       ),
-      todayTextStyle:
-          TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
+      todayTextStyle: TextStyle(
+        fontWeight: FontWeight.w900,
+        color: Colors.black,
+      ),
       // onCalendarChanged: (date) {
       //   print(date);
       //   setState(() {
@@ -148,10 +177,16 @@ class _CalendarPageState extends State<CalendarPage> {
 
       // headerTitleTouchable: true,
       todayButtonColor: Color(0xffffffff),
+
       todayBorderColor: Colors.blue,
+      headerTitleTouchable: true,
       markedDatesMap: _markedDateMap,
       markedDateShowIcon: true,
       markedDateIconMaxShown: 1,
+      // daysHaveCircularBorder: true,
+      onDayPressed: (DateTime date, List<Event> event) {
+        print('On DAY PRESSED $date - EVENT $event');
+      },
       markedDateMoreShowTotal:
           null, // null for not showing hidden events indicator
       markedDateIconBuilder: (event) {
@@ -176,7 +211,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/images/dashboard_bg.png"),
+                image: AssetImage("assets/images/content_bg.png"),
                 fit: BoxFit.cover,
               ),
             ),
@@ -188,10 +223,11 @@ class _CalendarPageState extends State<CalendarPage> {
               children: <Widget>[
                 _calendarCarouselNoHeader,
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    markerRepresent(Color(0xff0066ff), "Present"),
-                    markerRepresent(Colors.redAccent, "Leave"),
+                    markerRepresent(Color(0xff00bbfb), "Present"),
+                    markerRepresent(Colors.orangeAccent, "Leave"),
+                    markerRepresent(Colors.redAccent, "Early"),
                   ],
                 ),
               ],
@@ -211,8 +247,8 @@ class _CalendarPageState extends State<CalendarPage> {
         // ),
         children: [
           Container(
-            width: 20,
-            height: 20,
+            width: 15,
+            height: 15,
             decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
           Container(

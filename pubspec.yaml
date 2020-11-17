@@ -30,6 +30,7 @@ dependencies:
   bubble_bottom_bar: ^1.2.0
   shared_preferences: ^0.5.12+4
   collection: ^1.14.13
+  cool_alert: ^1.0.1
 
 
   # The following adds the Cupertino Icons font to your application.

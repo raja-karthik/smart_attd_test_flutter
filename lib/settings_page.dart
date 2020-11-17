@@ -10,6 +10,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  bool isSwitched = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,19 +25,61 @@ class _SettingsPageState extends State<SettingsPage> {
                   textStyle: TextStyle(
                 fontWeight: FontWeight.w400,
               )))),
-      body: Column(
+      body: Stack(
         children: [
           Container(
-            padding: EdgeInsets.fromLTRB(40, 50, 40, 0),
-            width: double.infinity,
-            child: RaisedButton(
-              child: new Text('Logout'),
-              color: Colors.blueAccent,
-              textColor: Colors.white,
-              onPressed: () {
-                logOut();
-              },
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/images/content_bg.png"),
+                fit: BoxFit.cover,
+              ),
             ),
+          ),
+          Column(
+            children: [
+              Container(
+                padding: EdgeInsets.fromLTRB(30, 30, 30, 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Receive Notifications',
+                      style: GoogleFonts.montserrat(
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Switch(
+                      value: isSwitched,
+                      onChanged: (value) {
+                        setState(() {
+                          isSwitched = value;
+                          print(isSwitched);
+                        });
+                      },
+                      activeTrackColor: Colors.lightGreenAccent,
+                      activeColor: Colors.green,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 150,
+                child: OutlineButton(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  onPressed: () {
+                    logOut();
+                  },
+                  borderSide: BorderSide(color: Color(0xff0066ff)),
+                  textColor: Color(0xff0066ff),
+                  disabledBorderColor: Colors.white.withOpacity(0.6),
+                  disabledTextColor: Colors.white.withOpacity(0.6),
+                  child: new Text('Logout'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
