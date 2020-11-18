@@ -1,8 +1,5 @@
 import 'dart:convert';
-
-import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart'
     show CalendarCarousel;
 import 'package:flutter_calendar_carousel/classes/event.dart';
@@ -28,11 +25,12 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime selectedMonth;
   var monthAttenceRes = {};
   var punchInOutHistory;
-  bool _loadingIndicator = false;
+  // bool _loadingIndicator = false;
   var len;
   var len2;
   var len3;
   var totalDaysPresent;
+  var totalHrs;
 
   @override
   void initState() {
@@ -103,51 +101,67 @@ class _CalendarPageState extends State<CalendarPage> {
     Map<String, dynamic> res = jsonDecode(response.body);
     print('After Decode $res');
     if (response.statusCode == 200) {
-      setState(() {
-        if (res['status'] == 'success') {
-          if (res['data'] != null) {
-            var dates = res['data']['dates'];
+      if (res['status'] == 'success') {
+        if (res['data'] != null) {
+          var dates = res['data']['dates'];
+
+          setState(() {
             monthAttenceRes = dates;
             totalDaysPresent = res['data']['days'];
-            var totalHrs = res['data']['hrs'];
-            print('${dates.length}');
+            totalHrs = res['data']['hrs'];
+          });
 
-            for (var i = 1; i <= dates.length; i++) {
-              int j = i;
-              int length = j.toString().length;
-              var act_date =
-                  length == 1 ? '0${j.toString()}' : '${j.toString()}';
-              print(dates[act_date]);
-              if (dates[act_date]['t'] == "P") {
+          print('${dates.length}');
+
+          for (var i = 1; i <= dates.length; i++) {
+            int j = i;
+            int length = j.toString().length;
+            var actDate = length == 1 ? '0${j.toString()}' : '${j.toString()}';
+            print(dates[actDate]);
+            setState(() {
+              if (dates[actDate]['t'] == "P") {
                 presentDates
                     .add(DateTime(selectedMonth.year, selectedMonth.month, i));
-              } else if (dates[act_date]['t'] == "A") {
+              } else if (dates[actDate]['t'] == "A") {
                 absentDates
                     .add(DateTime(selectedMonth.year, selectedMonth.month, i));
               }
-            }
-            assignEvents();
-            print('PRESENT $presentDates');
-            print('ABSENT $absentDates');
+            });
           }
-        } else {
-          if (res['token_invalid']) {
-            CoolAlert.show(
-              context: context,
-              barrierDismissible: false,
-              confirmBtnText: 'OK',
-              confirmBtnColor: Color(0xff0083fd),
-              onConfirmBtnTap: () {
-                logOut();
-              },
-              type: CoolAlertType.warning,
-              title: "Token Expired",
-              text:
-                  "Looks like you logged into another device, Please login here to continue using in this device",
-            );
-          }
+
+          assignEvents();
+          print('PRESENT $presentDates');
+          print('ABSENT $absentDates');
         }
-      });
+      } else {
+        if (res['token_invalid']) {
+          return showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => new AlertDialog(
+                  title: new Text('Token Expired'),
+                  content: new Text(
+                      'Looks like you logged into another device, Please login here to continue using in this device'),
+                  actions: <Widget>[
+                    new GestureDetector(
+                      onTap: () {
+                        logOut();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          "OK",
+                          style: TextStyle(color: Color(0xff0083fd)),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ) ??
+              false;
+        }
+      }
     } else {
       setState(() {
         // _loadingIndicator = false;
@@ -266,7 +280,6 @@ class _CalendarPageState extends State<CalendarPage> {
         color: Colors.black,
       ),
       onCalendarChanged: (date) {
-        // _loadingIndicator = true;
         setState(() {
           _markedDateMap = new EventList<Event>(
             events: {},
@@ -275,36 +288,32 @@ class _CalendarPageState extends State<CalendarPage> {
           absentDates = [];
           earlyDates = [];
           selectedMonth = date;
-          var formatterMonthYear = new DateFormat('MMM y');
-          String formattedMonthYear = formatterMonthYear.format(selectedMonth);
-          getMonthAttendance(formattedMonthYear);
         });
 
-        print(date);
+        var formatterMonthYear = new DateFormat('MMM y');
+        String formattedMonthYear = formatterMonthYear.format(selectedMonth);
+        getMonthAttendance(formattedMonthYear);
       },
       minSelectedDate: DateTime(currentDate.year, currentDate.month - 12, 1),
       maxSelectedDate:
           DateTime(currentDate.year, currentDate.month, currentDate.day),
-
-      // headerTitleTouchable: true,
       todayButtonColor: Color(0xffffffff),
-
       todayBorderColor: Colors.blue,
       headerTitleTouchable: true,
       markedDatesMap: _markedDateMap,
       markedDateShowIcon: true,
       markedDateIconMaxShown: 1,
-      // daysHaveCircularBorder: true,
       onDayPressed: (DateTime date, List<Event> event) {
         print('On DAY PRESSED $date - EVENT $event');
+
+        int selectday = date.day;
+        var length = selectday.toString().length;
+        var actDate = length == 1
+            ? '0${selectday.toString()}'
+            : '${selectday.toString()}';
+        var inoutTime = monthAttenceRes[actDate]['v'];
+        print(inoutTime);
         setState(() {
-          int selectday = date.day;
-          var length = selectday.toString().length;
-          var act_date = length == 1
-              ? '0${selectday.toString()}'
-              : '${selectday.toString()}';
-          var inoutTime = monthAttenceRes[act_date]['v'];
-          print(inoutTime);
           punchInOutHistory = inoutTime;
         });
       },

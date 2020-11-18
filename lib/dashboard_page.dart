@@ -1,16 +1,14 @@
 import 'dart:convert';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_first_flutterapp/profile_page.dart';
+import 'package:my_first_flutterapp/home_page.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './main.dart';
 import './map_page.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:cool_alert/cool_alert.dart';
 
 class DashboardHomePage extends StatefulWidget {
   @override
@@ -45,7 +43,6 @@ class _DashboardHomePageState extends State<DashboardHomePage>
     var monthyear = months[_currentIndex]['monthYear'];
 
     loadDatesOfMonth();
-
     getAttendance(formattedMonthYear);
     setMonthSharedPref(_currentIndex, monthyear);
 
@@ -67,15 +64,15 @@ class _DashboardHomePageState extends State<DashboardHomePage>
 
   _handleTabSelection() async {
     setState(() {
-      attendanceFinal = null;
+      // attendanceFinal = null;
       _showLoading = true;
       _currentIndex = _tabController.index;
-      var monthyear = months[_currentIndex]['monthYear'];
-
-      loadDatesOfMonth();
-      getAttendance(monthyear);
-      setMonthSharedPref(_currentIndex, monthyear);
     });
+
+    var monthyear = months[_currentIndex]['monthYear'];
+    loadDatesOfMonth();
+    getAttendance(monthyear);
+    setMonthSharedPref(_currentIndex, monthyear);
   }
 
   setMonthSharedPref(_currentIndex, monthyear) async {
@@ -149,32 +146,44 @@ class _DashboardHomePageState extends State<DashboardHomePage>
     if (response.statusCode == 200) {
       setState(() {
         _showLoading = false;
-        if (res['status'] == 'success') {
-          if (res['data'] != null) {
-            // List newListTiming = [];
-            // print('PRRRRRRRR $attdTiming');
-            attendanceFinal = groupBy(res['data'], (obj) => obj['dt']);
-
-            print('GROUP BY $attendanceFinal');
-          }
-        } else {
-          if (res['token_invalid']) {
-            CoolAlert.show(
-              context: context,
-              barrierDismissible: false,
-              confirmBtnText: 'OK',
-              confirmBtnColor: Color(0xff0083fd),
-              onConfirmBtnTap: () {
-                logOut();
-              },
-              type: CoolAlertType.warning,
-              title: "Token Expired",
-              text:
-                  "Looks like you logged into another device, Please login here to continue using in this device",
-            );
-          }
-        }
       });
+      if (res['status'] == 'success') {
+        if (res['data'] != null) {
+          setState(() {
+            attendanceFinal = groupBy(res['data'], (obj) => obj['dt']);
+          });
+
+          print('GROUP BY $attendanceFinal');
+        }
+      } else {
+        if (res['token_invalid']) {
+          return showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => new AlertDialog(
+                  title: new Text('Token Expired'),
+                  content: new Text(
+                      'Looks like you logged into another device, Please login here to continue using in this device'),
+                  actions: <Widget>[
+                    new GestureDetector(
+                      onTap: () {
+                        logOut();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          "OK",
+                          style: TextStyle(color: Color(0xff0083fd)),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ) ??
+              false;
+        }
+      }
     } else {
       setState(() {
         _showLoading = false;
@@ -218,8 +227,18 @@ class _DashboardHomePageState extends State<DashboardHomePage>
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 new GestureDetector(
-                  onTap: () {
+                  onTap: () async {
                     print("Profile image clicked");
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    prefs.setInt('bottomBarIndex', 2);
+                    Navigator.push(
+                      context,
+                      PageTransition(
+                        type: PageTransitionType.fade,
+                        child: MyHomePage(title: 'Home'),
+                      ),
+                    );
                   },
                   child: Container(
                     margin: EdgeInsets.only(left: 20),
@@ -307,16 +326,14 @@ class _DashboardHomePageState extends State<DashboardHomePage>
                       controller: _tabController,
                       children:
                           List<Widget>.generate(months.length, (int index) {
-                        // print(categories[index]);
-                        // var monthAttd = attendance[index];
-                        bool _showCurrentData;
-                        if (index == _currentIndex) {
-                          _showCurrentData = false;
-                        } else {
-                          _showCurrentData = true;
-                        }
+                        // bool _showCurrentData;
+                        // if (index == _currentIndex) {
+                        //   _showCurrentData = false;
+                        // } else {
+                        //   _showCurrentData = true;
+                        // }
 
-                        return _showCurrentData
+                        return index != _currentIndex
                             ? new Container()
                             : new Container(
                                 child: ListView.builder(

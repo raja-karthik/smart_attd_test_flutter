@@ -1,10 +1,8 @@
-// import 'dart:html';
-
 import 'package:flutter/material.dart';
-import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:my_first_flutterapp/calendar_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import './dashboard_page.dart';
 import './calendar_page.dart';
 import './profile_page.dart';
@@ -24,7 +22,21 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _getPermission();
-    currentIndex = 0;
+    _getCurrentIndex();
+  }
+
+  _getCurrentIndex() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int index = prefs.getInt('bottomBarIndex');
+
+    setState(() {
+      if (index != null) {
+        currentIndex = index;
+        prefs.setInt('bottomBarIndex', 0);
+      } else {
+        currentIndex = 0;
+      }
+    });
   }
 
   _getPermission() async {
@@ -38,8 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void changePage(int index) {
     setState(() {
       currentIndex = index;
-      print("Index $currentIndex");
     });
+    print("Index $currentIndex");
   }
 
   Future<bool> _onBackPressed() {
@@ -91,189 +103,91 @@ class _MyHomePageState extends State<MyHomePage> {
                 : (currentIndex == 2
                     ? ProfilePage()
                     : (currentIndex == 3 ? SettingsPage() : null))),
-
         bottomNavigationBar: new Theme(
-            data: Theme.of(context).copyWith(
+          data: Theme.of(context).copyWith(
 
-                // sets the background color of the `BottomNavigationBar`
-                canvasColor: Colors.white,
-                // sets the active color of the `BottomNavigationBar` if `Brightness` is light
-                primaryColor: Color(0xff0066ff),
-                textTheme: Theme.of(context).textTheme.copyWith(
-                      caption: new TextStyle(color: Colors.grey),
-                    )), // sets the inactive color of the `BottomNavigationBar`
+              // sets the background color of the `BottomNavigationBar`
+              canvasColor: Colors.white,
+              // sets the active color of the `BottomNavigationBar` if `Brightness` is light
+              primaryColor: Color(0xff0066ff),
+              textTheme: Theme.of(context).textTheme.copyWith(
+                    caption: new TextStyle(color: Colors.grey),
+                  )), // sets the inactive color of the `BottomNavigationBar`
 
-            child: Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey,
-                  ),
-                ],
-              ),
-              child: new BottomNavigationBar(
-                elevation: 10,
-                type: BottomNavigationBarType.fixed,
-                currentIndex: currentIndex,
-                onTap: changePage,
-                items: [
-                  new BottomNavigationBarItem(
-                    icon: new Icon(Icons.home_outlined),
-                    // label: 'Home',
-                    title: new Text(
-                      'Home',
-                      style: GoogleFonts.montserrat(
-                        textStyle: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 13,
-                        ),
+          child: Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                ),
+              ],
+            ),
+            child: new BottomNavigationBar(
+              elevation: 10,
+              type: BottomNavigationBarType.fixed,
+              currentIndex: currentIndex,
+              onTap: changePage,
+              items: [
+                new BottomNavigationBarItem(
+                  icon: new Icon(Icons.home_outlined),
+                  // label: 'Home',
+                  title: new Text(
+                    'Home',
+                    style: GoogleFonts.montserrat(
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 13,
                       ),
                     ),
-                    activeIcon: new Icon(Icons.home),
                   ),
-                  new BottomNavigationBarItem(
-                    icon: new Icon(Icons.calendar_today_outlined),
-                    // label: 'Calendar',
-                    title: new Text(
-                      'Attendance',
-                      style: GoogleFonts.montserrat(
-                        textStyle: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 13,
-                        ),
+                  activeIcon: new Icon(Icons.home),
+                ),
+                new BottomNavigationBarItem(
+                  icon: new Icon(Icons.calendar_today_outlined),
+                  // label: 'Calendar',
+                  title: new Text(
+                    'Attendance',
+                    style: GoogleFonts.montserrat(
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 13,
                       ),
                     ),
-                    activeIcon: Icon(Icons.calendar_today_rounded),
                   ),
-                  new BottomNavigationBarItem(
-                    icon: Icon(Icons.account_circle_outlined),
-                    //label: 'Profile',
-                    title: new Text(
-                      'Profile',
-                      style: GoogleFonts.montserrat(
-                        textStyle: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 13,
-                        ),
+                  activeIcon: Icon(Icons.calendar_today_rounded),
+                ),
+                new BottomNavigationBarItem(
+                  icon: Icon(Icons.account_circle_outlined),
+                  //label: 'Profile',
+                  title: new Text(
+                    'Profile',
+                    style: GoogleFonts.montserrat(
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 13,
                       ),
                     ),
-                    activeIcon: Icon(Icons.account_circle_rounded),
                   ),
-                  new BottomNavigationBarItem(
-                    icon: Icon(Icons.settings_outlined),
-                    // label: 'Settings',
-                    title: new Text(
-                      'Settings',
-                      style: GoogleFonts.montserrat(
-                        textStyle: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 13,
-                        ),
+                  activeIcon: Icon(Icons.account_circle_rounded),
+                ),
+                new BottomNavigationBarItem(
+                  icon: Icon(Icons.settings_outlined),
+                  // label: 'Settings',
+                  title: new Text(
+                    'Settings',
+                    style: GoogleFonts.montserrat(
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 13,
                       ),
                     ),
-                    activeIcon: Icon(Icons.settings_rounded),
                   ),
-                ],
-              ),
-            )),
-
-        //  bottomNavigationBar: BubbleBottomBar(
-        //     backgroundColor: Color(0xff0066ff),
-        //     hasNotch: true,
-        //     opacity: 1,
-        //     // backgroundColor:
-        //     currentIndex: currentIndex,
-        //     onTap: changePage,
-        //     borderRadius: BorderRadius.vertical(
-        //       top: Radius.circular(16),
-        //     ), //border radius doesn't work when the notch is enabled.
-        //     elevation: 8,
-        //     items: <BubbleBottomBarItem>[
-        //       BubbleBottomBarItem(
-        //         backgroundColor: Colors.white,
-        //         icon: Icon(
-        //           Icons.home_outlined,
-        //           color: Colors.white,
-        //         ),
-        //         activeIcon: Icon(
-        //           Icons.home,
-        //           color: Color(0xff0083fd),
-        //         ),
-        //         title: Text(
-        //           "Home",
-        //           style: GoogleFonts.montserrat(
-        //             textStyle: TextStyle(
-        //               fontWeight: FontWeight.w400,
-        //               color: Color(0xff0083fd),
-        //               fontSize: 13,
-        //             ),
-        //           ),
-        //         ),
-        //       ),
-        //       BubbleBottomBarItem(
-        //           backgroundColor: Colors.white,
-        //           icon: Icon(
-        //             Icons.calendar_today_outlined,
-        //             color: Colors.white,
-        //             size: 18,
-        //           ),
-        //           activeIcon: Icon(
-        //             Icons.calendar_today_rounded,
-        //             color: Color(0xff0083fd),
-        //             size: 18,
-        //           ),
-        //           title: Text(
-        //             "Attendance",
-        //             style: GoogleFonts.montserrat(
-        //               textStyle: TextStyle(
-        //                 fontWeight: FontWeight.w400,
-        //                 color: Color(0xff0083fd),
-        //                 fontSize: 13,
-        //               ),
-        //             ),
-        //           )),
-        //       BubbleBottomBarItem(
-        //           backgroundColor: Colors.white,
-        //           icon: Icon(
-        //             Icons.account_circle_outlined,
-        //             color: Colors.white,
-        //           ),
-        //           activeIcon: Icon(
-        //             Icons.account_circle_rounded,
-        //             color: Color(0xff0083fd),
-        //           ),
-        //           title: Text(
-        //             "Profile",
-        //             style: GoogleFonts.montserrat(
-        //               textStyle: TextStyle(
-        //                 fontWeight: FontWeight.w400,
-        //                 color: Color(0xff0083fd),
-        //                 fontSize: 13,
-        //               ),
-        //             ),
-        //           )),
-        //       BubbleBottomBarItem(
-        //           backgroundColor: Colors.white,
-        //           icon: Icon(
-        //             Icons.settings_outlined,
-        //             color: Colors.white,
-        //           ),
-        //           activeIcon: Icon(
-        //             Icons.settings_rounded,
-        //             color: Color(0xff0083fd),
-        //           ),
-        //           title: Text(
-        //             "Settings",
-        //             style: GoogleFonts.montserrat(
-        //               textStyle: TextStyle(
-        //                 fontWeight: FontWeight.w400,
-        //                 color: Color(0xff0083fd),
-        //                 fontSize: 13,
-        //               ),
-        //             ),
-        //           ))
-        //     ],
-        //   ),
+                  activeIcon: Icon(Icons.settings_rounded),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

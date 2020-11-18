@@ -1,9 +1,6 @@
 import 'dart:convert';
-
-import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_first_flutterapp/home_page.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_first_flutterapp/main.dart';
@@ -42,76 +39,72 @@ class _ProfilePageState extends State<ProfilePage> {
     Map<String, dynamic> res = jsonDecode(response.body);
     print('After Decode $res');
     if (response.statusCode == 200) {
-      setState(() {
-        if (res['status'] == 'success') {
-          // if (res['data'] != null) {
+      if (res['status'] == 'success') {
+        setState(() {
           _showLoading = false;
           profileData = res['profile'];
-          // }
-        } else {
-          if (res['token_invalid'] == 'true') {
-            CoolAlert.show(
-              context: context,
-              barrierDismissible: false,
-              confirmBtnText: 'OK',
-              confirmBtnColor: Color(0xff0083fd),
-              onConfirmBtnTap: () {
-                logOut();
-              },
-              type: CoolAlertType.warning,
-              title: "Token Expired",
-              text:
-                  "Looks like you logged into another device, Please login here to continue using in this device",
-            );
-          } else {
-            return showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => new AlertDialog(
-                    title: new Text('Alert'),
-                    content: new Text('${res['message']}'),
-                    actions: <Widget>[
-                      new GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            Navigator.of(context).pop(false);
-                            // _showLoading = false;
-                            // print(_showLoading);
-                          });
-
-                          // Navigator.push(
-                          //   context,
-                          //   PageTransition(
-                          //     type: PageTransitionType.fade,
-                          //     child: MyHomePage(title: 'Home'),
-                          //   ),
-                          // );
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(10),
-                          child: Text(
-                            "OK",
-                            style: TextStyle(color: Color(0xff0083fd)),
-                          ),
+        });
+      } else {
+        if (res['token_invalid'] == 'true') {
+          return showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => new AlertDialog(
+                  title: new Text('Token Expired'),
+                  content: new Text(
+                      'Looks like you logged into another device, Please login here to continue using in this device'),
+                  actions: <Widget>[
+                    new GestureDetector(
+                      onTap: () {
+                        logOut();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          "OK",
+                          style: TextStyle(color: Color(0xff0083fd)),
                         ),
                       ),
-                      SizedBox(height: 16),
-                    ],
-                  ),
-                ) ??
-                false;
-          }
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ) ??
+              false;
+        } else {
+          return showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => new AlertDialog(
+                  title: new Text('Alert'),
+                  content: new Text('${res['message']}'),
+                  actions: <Widget>[
+                    new GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop(false);
+                        setState(() {
+                          _showLoading = false;
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          "OK",
+                          style: TextStyle(color: Color(0xff0083fd)),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ) ??
+              false;
         }
-      });
+      }
     } else {
-      print('RES CODE = ${res['status']}');
-      Navigator.push(
-        context,
-        PageTransition(
-          type: PageTransitionType.fade,
-          child: MyHomePage(title: 'Home'),
-        ),
-      );
+      setState(() {
+        _showLoading = false;
+      });
     }
   }
 
@@ -167,7 +160,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                height: 200,
+                                height: 350,
                                 width: double.infinity,
                                 child: profileUrl != null
                                     ? Image.network(
@@ -220,7 +213,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                         '${profileData['mobile']}',
                                         style: GoogleFonts.montserrat(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       subtitle: Text('Mobile'),
@@ -239,7 +231,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                         '${profileData['email']}',
                                         style: GoogleFonts.montserrat(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       subtitle: Text('Email'),
@@ -258,7 +249,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                         '${profileData['address']}',
                                         style: GoogleFonts.montserrat(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       subtitle: Text('Address'),
@@ -277,7 +267,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                         '${profileData['id']}',
                                         style: GoogleFonts.montserrat(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       subtitle: Text('Staff ID'),
@@ -296,7 +285,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                         '${profileData['type']}',
                                         style: GoogleFonts.montserrat(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       subtitle: Text('Staff Type'),

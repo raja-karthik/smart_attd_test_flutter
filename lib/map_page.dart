@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:cool_alert/cool_alert.dart';
 import 'package:intl/intl.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:my_first_flutterapp/camera_page.dart';
@@ -76,10 +74,9 @@ class _MapPageState extends State<MapPage> {
       _showLoading = false;
     }
 
-    print('MONTHHHHHHHHHH $selectedMonth ==== $currMonth');
+    var sDArray = widget.selectedDateArr;
+
     setState(() {
-      var sDArray = widget.selectedDateArr;
-      print('SDARRRRRRRRR $sDArray');
       if (sDArray != null) {
         _punchinTime = widget.selectedDateArr[0]['in'];
         _punchoutTime =
@@ -105,36 +102,54 @@ class _MapPageState extends State<MapPage> {
     print('Response body: ${response.body}');
     Map<String, dynamic> res = jsonDecode(response.body);
     print('After Decode $res');
-    setState(() {
-      if (response.statusCode == 200) {
+
+    if (response.statusCode == 200) {
+      setState(() {
         _showLoading = false;
-        if (res['status'] == 'success') {
+      });
+
+      if (res['status'] == 'success') {
+        setState(() {
           if (res['action'] == 'in') {
             _pinchinEnabled = !res['disable'];
           } else if (res['action'] == 'out') {
             _pinchoutEnabled = !res['disable'];
           }
-        } else {
-          if (res['token_invalid']) {
-            CoolAlert.show(
-              context: context,
-              barrierDismissible: false,
-              confirmBtnText: 'OK',
-              confirmBtnColor: Color(0xff0083fd),
-              onConfirmBtnTap: () {
-                logOut();
-              },
-              type: CoolAlertType.warning,
-              title: "Token Expired",
-              text:
-                  "Looks like you logged into another device, Please login here to continue using in this device",
-            );
-          }
-        }
+        });
       } else {
-        _showLoading = false;
+        if (res['token_invalid']) {
+          return showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => new AlertDialog(
+                  title: new Text('Token Expired'),
+                  content: new Text(
+                      'Looks like you logged into another device, Please login here to continue using in this device'),
+                  actions: <Widget>[
+                    new GestureDetector(
+                      onTap: () {
+                        logOut();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          "OK",
+                          style: TextStyle(color: Color(0xff0083fd)),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ) ??
+              false;
+        }
       }
-    });
+    } else {
+      setState(() {
+        _showLoading = false;
+      });
+    }
   }
 
   logOut() {
@@ -156,12 +171,12 @@ class _MapPageState extends State<MapPage> {
   _getCurrentLocation() async {
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
         .then((Position position) {
+      var formatter = new DateFormat('MMM');
+      var formatterdate = new DateFormat('dd');
+      String currMonth = formatter.format(datenow);
+      String currDate = formatterdate.format(datenow);
       setState(() {
         _currentPosition = position;
-        var formatter = new DateFormat('MMM');
-        var formatterdate = new DateFormat('dd');
-        String currMonth = formatter.format(datenow);
-        String currDate = formatterdate.format(datenow);
 
         if (selectedMonth == currMonth && selectedDate == currDate) {
           latitudeData = '${position.latitude}';
@@ -185,12 +200,10 @@ class _MapPageState extends State<MapPage> {
           },
           position: LatLng(lati, longi),
         ));
-        _goToCurrent();
       });
-      var formatter = new DateFormat('MMM');
-      var formatterdate = new DateFormat('dd');
-      String currMonth = formatter.format(datenow);
-      String currDate = formatterdate.format(datenow);
+
+      _goToCurrent();
+
       if (selectedMonth == currMonth && selectedDate == currDate) {
         _getAddressFromLatLng();
       } else {
@@ -240,6 +253,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       // appBar: AppBar(title: Text('Map Page')),
       body: _showLoading
@@ -249,7 +263,7 @@ class _MapPageState extends State<MapPage> {
           : Stack(
               children: [
                 Container(
-                  height: 550,
+                  height: size.height - 300,
                   child: GoogleMap(
                     myLocationEnabled: true,
                     mapToolbarEnabled: false,
@@ -287,8 +301,9 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
                 Container(
+                    height: 350,
                     margin: EdgeInsets.only(
-                      top: 500,
+                      top: size.height - 350,
                     ),
                     child: Stack(
                       children: [

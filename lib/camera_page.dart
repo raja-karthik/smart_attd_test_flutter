@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as Io;
 import 'package:camera/camera.dart';
-import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:my_first_flutterapp/home_page.dart';
@@ -341,72 +340,73 @@ class _CameraPageState extends State<CameraPage> {
     Map<String, dynamic> res = jsonDecode(response.body);
     print('After Decode $res');
     if (response.statusCode == 200) {
-      setState(() {
-        if (res['status'] == 'success') {
-          // if (res['data'] != null) {
-          Navigator.push(
-            context,
-            PageTransition(
-              type: PageTransitionType.fade,
-              child: MyHomePage(title: 'Home'),
-            ),
-          );
-          // }
-        } else {
-          if (res['token_invalid'] == 'true') {
-            CoolAlert.show(
-              context: context,
-              barrierDismissible: false,
-              confirmBtnText: 'OK',
-              confirmBtnColor: Color(0xff0083fd),
-              onConfirmBtnTap: () {
-                logOut();
-              },
-              type: CoolAlertType.warning,
-              title: "Token Expired",
-              text:
-                  "Looks like you logged into another device, Please login here to continue using in this device",
-            );
-          } else {
-            return showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => new AlertDialog(
-                    title: new Text('Alert'),
-                    content: new Text('${res['message']}'),
-                    actions: <Widget>[
-                      new GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            Navigator.of(context).pop(false);
-                            _showLoading = false;
-                            print(_showLoading);
-                          });
-
-                          // Navigator.push(
-                          //   context,
-                          //   PageTransition(
-                          //     type: PageTransitionType.fade,
-                          //     child: MyHomePage(title: 'Home'),
-                          //   ),
-                          // );
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(10),
-                          child: Text(
-                            "RETAKE",
-                            style: TextStyle(color: Color(0xff0083fd)),
-                          ),
+      if (res['status'] == 'success') {
+        // if (res['data'] != null) {
+        Navigator.push(
+          context,
+          PageTransition(
+            type: PageTransitionType.fade,
+            child: MyHomePage(title: 'Home'),
+          ),
+        );
+        // }
+      } else {
+        if (res['token_invalid'] == 'true') {
+          return showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => new AlertDialog(
+                  title: new Text('Token Expired'),
+                  content: new Text(
+                      'Looks like you logged into another device, Please login here to continue using in this device'),
+                  actions: <Widget>[
+                    new GestureDetector(
+                      onTap: () {
+                        logOut();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          "OK",
+                          style: TextStyle(color: Color(0xff0083fd)),
                         ),
                       ),
-                      SizedBox(height: 16),
-                    ],
-                  ),
-                ) ??
-                false;
-          }
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ) ??
+              false;
+        } else {
+          return showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => new AlertDialog(
+                  title: new Text('Alert'),
+                  content: new Text('${res['message']}'),
+                  actions: <Widget>[
+                    new GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop(false);
+                        setState(() {
+                          _showLoading = false;
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          "RETAKE",
+                          style: TextStyle(color: Color(0xff0083fd)),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ) ??
+              false;
         }
-      });
+      }
     } else {
       print('RES CODE = ${res['status']}');
       Navigator.push(

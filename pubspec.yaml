@@ -30,8 +30,8 @@ dependencies:
   bubble_bottom_bar: ^1.2.0
   shared_preferences: ^0.5.12+4
   collection: ^1.14.13
-  cool_alert: ^1.0.1
   introduction_screen: ^1.0.9
+  flutter_inappwebview: ^4.0.0+4
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -75,7 +75,8 @@ flutter:
   assets:
     - assets/images/
     - assets/icon/
-
+module:
+  androidX: true # Add this line.
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
 
