@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:my_first_flutterapp/profile_page.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './main.dart';
@@ -28,6 +29,8 @@ class _DashboardHomePageState extends State<DashboardHomePage>
   DateTime currentDate = DateTime.now();
   List<DateTime> selectedList = [];
   bool _showLoading = true;
+  var staffName;
+  var profileUrl;
 
   @override
   void initState() {
@@ -35,6 +38,7 @@ class _DashboardHomePageState extends State<DashboardHomePage>
     var currdate = DateTime(currentDate.year, currentDate.month, 1);
     var formatterMonthYear = new DateFormat('MMM y');
     String formattedMonthYear = formatterMonthYear.format(currdate);
+    getProfile();
     getMonths();
 
     _currentIndex = months.length - 1;
@@ -51,6 +55,14 @@ class _DashboardHomePageState extends State<DashboardHomePage>
       initialIndex: _currentIndex,
     );
     _tabController.addListener(_handleTabSelection);
+  }
+
+  getProfile() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      staffName = prefs.getString('name');
+      profileUrl = prefs.getString('profile_url');
+    });
   }
 
   _handleTabSelection() async {
@@ -205,14 +217,26 @@ class _DashboardHomePageState extends State<DashboardHomePage>
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Container(
-                  padding: EdgeInsets.only(left: 20),
-                  child: Icon(Icons.account_circle, size: 32.0),
+                new GestureDetector(
+                  onTap: () {
+                    print("Profile image clicked");
+                  },
+                  child: Container(
+                    margin: EdgeInsets.only(left: 20),
+                    height: 32,
+                    width: 32,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(32.0),
+                      child: Image.network(
+                        "$profileUrl",
+                      ),
+                    ),
+                  ),
                 ),
                 Container(
                   padding: EdgeInsets.only(left: 10),
                   child: Text(
-                    "Name",
+                    staffName != null ? '$staffName' : '-',
                     style: GoogleFonts.montserrat(),
                   ),
                 ),

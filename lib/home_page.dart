@@ -93,78 +93,89 @@ class _MyHomePageState extends State<MyHomePage> {
                     : (currentIndex == 3 ? SettingsPage() : null))),
 
         bottomNavigationBar: new Theme(
-          data: Theme.of(context).copyWith(
-              // sets the background color of the `BottomNavigationBar`
-              canvasColor: Color(0xff0066ff),
-              // sets the active color of the `BottomNavigationBar` if `Brightness` is light
-              primaryColor: Colors.white,
-              textTheme: Theme.of(context).textTheme.copyWith(
-                    caption: new TextStyle(color: Colors.white30),
-                  )), // sets the inactive color of the `BottomNavigationBar`
-          child: new BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: currentIndex,
-            onTap: changePage,
-            items: [
-              new BottomNavigationBarItem(
-                icon: new Icon(Icons.home_outlined),
-                // label: 'Home',
-                title: new Text(
-                  'Home',
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 13,
-                    ),
+            data: Theme.of(context).copyWith(
+
+                // sets the background color of the `BottomNavigationBar`
+                canvasColor: Colors.white,
+                // sets the active color of the `BottomNavigationBar` if `Brightness` is light
+                primaryColor: Color(0xff0066ff),
+                textTheme: Theme.of(context).textTheme.copyWith(
+                      caption: new TextStyle(color: Colors.grey),
+                    )), // sets the inactive color of the `BottomNavigationBar`
+
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
                   ),
-                ),
-                activeIcon: new Icon(Icons.home),
+                ],
               ),
-              new BottomNavigationBarItem(
-                icon: new Icon(Icons.calendar_today_outlined),
-                // label: 'Calendar',
-                title: new Text(
-                  'Attendance',
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 13,
+              child: new BottomNavigationBar(
+                elevation: 10,
+                type: BottomNavigationBarType.fixed,
+                currentIndex: currentIndex,
+                onTap: changePage,
+                items: [
+                  new BottomNavigationBarItem(
+                    icon: new Icon(Icons.home_outlined),
+                    // label: 'Home',
+                    title: new Text(
+                      'Home',
+                      style: GoogleFonts.montserrat(
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
+                    activeIcon: new Icon(Icons.home),
                   ),
-                ),
-                activeIcon: Icon(Icons.calendar_today_rounded),
-              ),
-              new BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle_outlined),
-                //label: 'Profile',
-                title: new Text(
-                  'Profile',
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 13,
+                  new BottomNavigationBarItem(
+                    icon: new Icon(Icons.calendar_today_outlined),
+                    // label: 'Calendar',
+                    title: new Text(
+                      'Attendance',
+                      style: GoogleFonts.montserrat(
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
+                    activeIcon: Icon(Icons.calendar_today_rounded),
                   ),
-                ),
-                activeIcon: Icon(Icons.account_circle_rounded),
-              ),
-              new BottomNavigationBarItem(
-                icon: Icon(Icons.settings_outlined),
-                // label: 'Settings',
-                title: new Text(
-                  'Settings',
-                  style: GoogleFonts.montserrat(
-                    textStyle: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 13,
+                  new BottomNavigationBarItem(
+                    icon: Icon(Icons.account_circle_outlined),
+                    //label: 'Profile',
+                    title: new Text(
+                      'Profile',
+                      style: GoogleFonts.montserrat(
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
+                    activeIcon: Icon(Icons.account_circle_rounded),
                   ),
-                ),
-                activeIcon: Icon(Icons.settings_rounded),
+                  new BottomNavigationBarItem(
+                    icon: Icon(Icons.settings_outlined),
+                    // label: 'Settings',
+                    title: new Text(
+                      'Settings',
+                      style: GoogleFonts.montserrat(
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    activeIcon: Icon(Icons.settings_rounded),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            )),
 
         //  bottomNavigationBar: BubbleBottomBar(
         //     backgroundColor: Color(0xff0066ff),

@@ -7,10 +7,10 @@ import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:my_first_flutterapp/home_page.dart';
 import 'package:my_first_flutterapp/main.dart';
+import 'package:http/http.dart' as http;
 import 'package:page_transition/page_transition.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CameraPage extends StatefulWidget {
@@ -353,7 +353,7 @@ class _CameraPageState extends State<CameraPage> {
           );
           // }
         } else {
-          if (res['token_invalid']) {
+          if (res['token_invalid'] == 'true') {
             CoolAlert.show(
               context: context,
               barrierDismissible: false,
@@ -368,13 +368,42 @@ class _CameraPageState extends State<CameraPage> {
                   "Looks like you logged into another device, Please login here to continue using in this device",
             );
           } else {
-            Navigator.push(
-              context,
-              PageTransition(
-                type: PageTransitionType.fade,
-                child: MyHomePage(title: 'Home'),
-              ),
-            );
+            return showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => new AlertDialog(
+                    title: new Text('Alert'),
+                    content: new Text('${res['message']}'),
+                    actions: <Widget>[
+                      new GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            Navigator.of(context).pop(false);
+                            _showLoading = false;
+                            print(_showLoading);
+                          });
+
+                          // Navigator.push(
+                          //   context,
+                          //   PageTransition(
+                          //     type: PageTransitionType.fade,
+                          //     child: MyHomePage(title: 'Home'),
+                          //   ),
+                          // );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(10),
+                          child: Text(
+                            "RETAKE",
+                            style: TextStyle(color: Color(0xff0083fd)),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                    ],
+                  ),
+                ) ??
+                false;
           }
         }
       });
