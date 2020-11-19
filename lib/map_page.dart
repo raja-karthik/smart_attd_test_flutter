@@ -311,7 +311,7 @@ class _MapPageState extends State<MapPage> {
                           decoration: BoxDecoration(
                             image: DecorationImage(
                               image:
-                                  AssetImage("assets/images/dashboard_bg.png"),
+                                  AssetImage("assets/images/dashboard_bg.jpg"),
                               fit: BoxFit.cover,
                             ),
                             borderRadius: BorderRadius.only(

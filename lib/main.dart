@@ -113,7 +113,6 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     mySLides = getSlides();
     controller = new PageController();
@@ -125,7 +124,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Container(
-          // height: MediaQuery.of(context).size.height,
+          height: MediaQuery.of(context).size.height - 100,
           child: PageView(
             controller: controller,
             onPageChanged: (index) {
@@ -154,7 +153,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         ),
         bottomSheet: slideIndex != 2
             ? Container(
-                margin: EdgeInsets.symmetric(vertical: 16),
+                color: Colors.white,
+                //margin: EdgeInsets.symmetric(vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
