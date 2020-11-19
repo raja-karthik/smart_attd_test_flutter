@@ -254,22 +254,17 @@ class _CalendarPageState extends State<CalendarPage> {
     cHeight = MediaQuery.of(context).size.height;
 
     _calendarCarouselNoHeader = CalendarCarousel<Event>(
-      height: cHeight * 0.54,
+      height: cHeight * 0.5,
       weekendTextStyle: TextStyle(
         color: Colors.black38,
       ),
-      // daysTextStyle: TextStyle(
-      //   color: Colors.blueGrey,
-      // ),
       weekdayTextStyle: TextStyle(
         color: Colors.black38,
       ),
-
       headerTextStyle: TextStyle(
         fontSize: 16,
         color: Colors.black,
         fontWeight: FontWeight.w500,
-        // backgroundColor: Colors.blue,
       ),
       daysTextStyle: TextStyle(
         color: Colors.black54,
