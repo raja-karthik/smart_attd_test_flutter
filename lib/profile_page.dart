@@ -178,17 +178,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     ListTile(
-                                      leading: Container(
-                                        // margin: EdgeInsets.only(left: 20),
-                                        height: 35,
-                                        width: 35,
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(35.0),
-                                          child: Image.network(
-                                            "$profileUrl",
+                                      leading: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(
+                                            Icons.person,
                                           ),
-                                        ),
+                                        ],
                                       ),
                                       title: new Text(
                                         '${profileData['first_name']} ${profileData['last_name']}',

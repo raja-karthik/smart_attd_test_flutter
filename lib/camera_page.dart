@@ -212,6 +212,19 @@ class _CameraPageState extends State<CameraPage> {
                       child: Stack(
                         children: <Widget>[
                           Align(
+                            alignment: Alignment.centerLeft,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).pop(true);
+                              },
+                              child: Text(
+                                'Cancel',
+                                style:
+                                    GoogleFonts.montserrat(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          Align(
                             alignment: Alignment.center,
                             child: Material(
                               color: Colors.transparent,

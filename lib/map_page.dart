@@ -28,7 +28,7 @@ class _MapPageState extends State<MapPage> {
   List<Marker> _markers = [];
   String latitudeData = '';
   String longitudeData = '';
-  String _subLocality = '';
+
   String _locality = '';
   double lati = 0;
   double longi = 0;
@@ -209,7 +209,6 @@ class _MapPageState extends State<MapPage> {
       } else {
         setState(() {
           _currentAddress = "-";
-          _subLocality = '-';
           _locality = '-';
         });
       }
@@ -227,8 +226,11 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         _currentAddress =
             "${place.subLocality}, ${place.locality}, ${place.country}";
-        _subLocality = '${place.subLocality}';
-        _locality = '${place.locality}';
+        if (place.subLocality != place.locality) {
+          _locality = '${place.subLocality}, ${place.locality}';
+        } else {
+          _locality = '${place.locality}';
+        }
       });
       print('CURRENT ADDRESS ======> $_currentAddress');
     } catch (e) {
@@ -417,36 +419,32 @@ class _MapPageState extends State<MapPage> {
                                       ),
                                     ),
                                     Container(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.location_on,
-                                            size: 18,
-                                            color: Colors.white,
-                                          ),
-                                          SizedBox(
-                                            height: 8,
-                                          ),
-                                          Text(
-                                            '$_subLocality' != ''
-                                                ? '$_subLocality'
-                                                : '-',
-                                            style: GoogleFonts.montserrat(
-                                                color: Colors.white),
-                                          ),
-                                          SizedBox(
-                                            height: 4,
-                                          ),
-                                          Text(
-                                            '$_locality' != ''
-                                                ? '$_locality'
-                                                : '-',
-                                            style: GoogleFonts.montserrat(
-                                                color: Colors.white),
-                                          ),
-                                        ],
+                                      child: Expanded(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              size: 18,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(
+                                              height: 8,
+                                            ),
+                                            Text(
+                                              '$_locality' != ''
+                                                  ? '$_locality'
+                                                  : '-',
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              softWrap: false,
+                                              style: GoogleFonts.montserrat(
+                                                  color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     )
                                   ],

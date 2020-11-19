@@ -31,6 +31,7 @@ class _CalendarPageState extends State<CalendarPage> {
   var len3;
   var totalDaysPresent;
   var totalHrs;
+  bool _showLoading = true;
 
   @override
   void initState() {
@@ -84,6 +85,7 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
         );
       }
+      _showLoading = false;
     });
   }
 
@@ -132,8 +134,15 @@ class _CalendarPageState extends State<CalendarPage> {
           assignEvents();
           print('PRESENT $presentDates');
           print('ABSENT $absentDates');
+        } else {
+          setState(() {
+            _showLoading = false;
+          });
         }
       } else {
+        setState(() {
+          _showLoading = false;
+        });
         if (res['token_invalid']) {
           return showDialog(
                 context: context,
@@ -164,7 +173,7 @@ class _CalendarPageState extends State<CalendarPage> {
       }
     } else {
       setState(() {
-        // _loadingIndicator = false;
+        _showLoading = false;
       });
     }
   }
@@ -285,10 +294,13 @@ class _CalendarPageState extends State<CalendarPage> {
           selectedMonth = date;
         });
 
+        // _showLoading = true;
+
         var formatterMonthYear = new DateFormat('MMM y');
         String formattedMonthYear = formatterMonthYear.format(selectedMonth);
         getMonthAttendance(formattedMonthYear);
       },
+
       minSelectedDate: DateTime(currentDate.year, currentDate.month - 12, 1),
       maxSelectedDate:
           DateTime(currentDate.year, currentDate.month, currentDate.day),
@@ -341,174 +353,182 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
             ),
           ),
-          SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Container(
-                  height: 100,
-                  width: double.infinity,
-                  color: Colors.grey[300],
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+          _showLoading
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : SingleChildScrollView(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: <Widget>[
                       Container(
-                        padding: EdgeInsets.only(
-                          left: 20,
+                        height: 100,
+                        width: double.infinity,
+                        color: Colors.grey[300],
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.only(
+                                left: 20,
+                              ),
+                              // width: 100,
+                              child: Image.asset('assets/images/stopwatch.png'),
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.only(
+                                    right: 8,
+                                    bottom: 10,
+                                  ),
+                                  child: Text(
+                                    'Attendance',
+                                    style: GoogleFonts.montserrat(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.only(
+                                    right: 8,
+                                    bottom: 5,
+                                  ),
+                                  child: Text(
+                                    totalDaysPresent != null
+                                        ? '$totalDaysPresent'
+                                        : '0',
+                                    style: GoogleFonts.montserrat(
+                                      color: Colors.white,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.only(
+                                    right: 50,
+                                    bottom: 10,
+                                  ),
+                                  child: Text(
+                                    'Days',
+                                    style: GoogleFonts.montserrat(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        // width: 100,
-                        child: Image.asset('assets/images/stopwatch.png'),
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                        child: _calendarCarouselNoHeader,
                       ),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: EdgeInsets.only(
-                              right: 8,
-                              bottom: 10,
-                            ),
-                            child: Text(
-                              'Attendance',
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.only(
-                              right: 8,
-                              bottom: 5,
-                            ),
-                            child: Text(
-                              totalDaysPresent != null
-                                  ? '$totalDaysPresent'
-                                  : '0',
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.only(
-                              right: 50,
-                              bottom: 10,
-                            ),
-                            child: Text(
-                              'Days',
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
+                          markerRepresent(Color(0xff00bbfb), "Present"),
+                          markerRepresent(Colors.orangeAccent, "Leave"),
+                          markerRepresent(Colors.redAccent, "Early"),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                  child: _calendarCarouselNoHeader,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    markerRepresent(Color(0xff00bbfb), "Present"),
-                    markerRepresent(Colors.orangeAccent, "Leave"),
-                    markerRepresent(Colors.redAccent, "Early"),
-                  ],
-                ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(20, 30, 20, 0),
-                  child: punchInOutHistory != null
-                      ? Container(
-                          padding: EdgeInsets.only(
-                            bottom: 20,
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(
-                                  bottom: 10,
+                      Container(
+                        padding: EdgeInsets.fromLTRB(20, 30, 20, 0),
+                        child: punchInOutHistory != null
+                            ? Container(
+                                padding: EdgeInsets.only(
+                                  bottom: 20,
                                 ),
-                                width: double.infinity,
-                                height: 1,
-                                color: Colors.grey[200],
-                              ),
-                              Container(
-                                padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                child: Column(
                                   children: [
-                                    Text(
-                                      'TIMINGS',
-                                      style: GoogleFonts.montserrat(
-                                        color: Color(0xff0083fd),
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16,
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                        bottom: 10,
+                                      ),
+                                      width: double.infinity,
+                                      height: 1,
+                                      color: Colors.grey[200],
+                                    ),
+                                    Container(
+                                      padding:
+                                          EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'TIMINGS',
+                                            style: GoogleFonts.montserrat(
+                                              color: Color(0xff0083fd),
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Hours: 0 Hrs',
+                                            style: GoogleFonts.montserrat(
+                                              color: Colors.grey,
+                                            ),
+                                          )
+                                        ],
                                       ),
                                     ),
-                                    Text(
-                                      'Hours: 0 Hrs',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.grey,
+                                    Container(
+                                      child: Column(
+                                        children: [
+                                          for (var data in punchInOutHistory)
+                                            Card(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(15.0),
+                                              ),
+                                              color: Colors.white,
+                                              elevation: 5,
+                                              child: Container(
+                                                padding: EdgeInsets.fromLTRB(
+                                                    10, 20, 10, 20),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  children: [
+                                                    Text(
+                                                      'IN ${data['in'].toString()}',
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        color: Colors.black54,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      'OUT ${data['out'].toString()}',
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        color: Colors.black54,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                        ],
                                       ),
                                     )
                                   ],
-                                ),
-                              ),
-                              Container(
-                                child: Column(
-                                  children: [
-                                    for (var data in punchInOutHistory)
-                                      Card(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(15.0),
-                                        ),
-                                        color: Colors.white,
-                                        elevation: 5,
-                                        child: Container(
-                                          padding: EdgeInsets.fromLTRB(
-                                              10, 20, 10, 20),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
-                                            children: [
-                                              Text(
-                                                'IN ${data['in'].toString()}',
-                                                style: GoogleFonts.montserrat(
-                                                  color: Colors.black54,
-                                                ),
-                                              ),
-                                              Text(
-                                                'OUT ${data['out'].toString()}',
-                                                style: GoogleFonts.montserrat(
-                                                  color: Colors.black54,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                  ],
-                                ),
-                              )
-                            ],
-                          ))
-                      : Container(),
-                )
-              ],
-            ),
-          ),
+                                ))
+                            : Container(),
+                      )
+                    ],
+                  ),
+                ),
         ],
       ),
     );

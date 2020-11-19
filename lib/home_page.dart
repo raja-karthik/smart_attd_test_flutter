@@ -17,18 +17,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int currentIndex;
+  int currentIndex = 0;
   @override
   void initState() {
     super.initState();
     _getPermission();
     _getCurrentIndex();
+    //currentIndex = 0;
   }
 
   _getCurrentIndex() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int index = prefs.getInt('bottomBarIndex');
-
+    print('_getCurrentIndex ==== $index');
     setState(() {
       if (index != null) {
         currentIndex = index;
