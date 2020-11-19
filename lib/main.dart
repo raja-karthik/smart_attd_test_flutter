@@ -499,40 +499,42 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onBackVerifyPressed,
-      child: new Scaffold(
-          key: _scaffoldKey,
-          // resizeToAvoidBottomInset: false, //when keyboard opens, block the bg
-          body: Stack(children: [
-            Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/images/onboard_bg.png"),
-                  fit: BoxFit.cover,
+      child: SafeArea(
+        child: new Scaffold(
+            key: _scaffoldKey,
+            // resizeToAvoidBottomInset: false, //when keyboard opens, block the bg
+            body: Stack(children: [
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/images/login_bg.png"),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              // color: Color(0xff25BFFA),
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // _logo(),
-                  AnimatedSwitcher(
-                      duration: Duration(milliseconds: 1000),
-                      child: _showOtpContainer != true
-                          ? Container(
-                              child: _loginFields(),
-                            )
-                          : Container(
-                              child: _otpFields(),
-                            )),
-                ],
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 40),
+                // color: Color(0xff25BFFA),
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // _logo(),
+                    AnimatedSwitcher(
+                        duration: Duration(milliseconds: 1000),
+                        child: _showOtpContainer != true
+                            ? Container(
+                                child: _loginFields(),
+                              )
+                            : Container(
+                                child: _otpFields(),
+                              )),
+                  ],
+                ),
               ),
-            ),
-          ])),
+            ])),
+      ),
     );
   }
 
