@@ -291,6 +291,7 @@ class _CalendarPageState extends State<CalendarPage> {
           presentDates = [];
           absentDates = [];
           earlyDates = [];
+          punchInOutHistory = null;
           selectedMonth = date;
         });
 
