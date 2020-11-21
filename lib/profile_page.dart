@@ -160,7 +160,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                height: 350,
+                                height: 300,
                                 width: double.infinity,
                                 child: profileUrl != null
                                     ? Image.network(

@@ -408,7 +408,7 @@ class _CameraPageState extends State<CameraPage> {
                       child: Container(
                         padding: EdgeInsets.all(10),
                         child: Text(
-                          "RETAKE",
+                          "OK",
                           style: TextStyle(color: Color(0xff0083fd)),
                         ),
                       ),

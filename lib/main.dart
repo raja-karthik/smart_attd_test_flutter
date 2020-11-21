@@ -13,7 +13,6 @@ import 'package:my_first_flutterapp/model/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:sms_otp_auto_verify/sms_otp_auto_verify.dart';
 import 'package:page_transition/page_transition.dart';
-import './home_page.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class MyInAppBrowser extends InAppBrowser {
@@ -825,6 +824,15 @@ class _LoginPageState extends State<LoginPage> {
         prefs.setString('token', res['token']);
         prefs.setString('name', details['name']);
         prefs.setString('profile_url', details['profile']);
+        String img64;
+        http.Response response = await http.get(
+          details['logo'],
+        );
+        if (mounted) {
+          img64 = base64Encode(response.bodyBytes);
+        }
+
+        prefs.setString('logo_base64', img64);
         setState(() {
           _isLoadingVerifyButton = false;
           _enableVerifyBtn = false;
@@ -1177,17 +1185,31 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  var decodedBytes;
+  var loggedin;
   @override
   void initState() {
     super.initState();
+    getLogoImage();
     launchPage();
+  }
+
+  getLogoImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var base64Str = prefs.getString('logo_base64');
+    if (base64Str != null) {
+      setState(() {
+        loggedin = prefs.getString('loggedin');
+        decodedBytes = base64Decode(base64Str);
+      });
+    }
   }
 
   launchPage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var loggedin = prefs.getString('loggedin');
+    loggedin = prefs.getString('loggedin');
     print('LOGGED IN => $loggedin');
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 6), () {
       if (loggedin == 'true') {
         Navigator.push(
           context,
@@ -1213,15 +1235,18 @@ class _SplashPageState extends State<SplashPage> {
     return Scaffold(
       body: Center(
         child: Container(
-          width: 206,
-          height: 250,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/smart_attendance.png'),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
+            // width: 206,
+            // height: 250,
+            child: loggedin == 'true'
+                ? Image.memory(
+                    decodedBytes,
+                    width: 220,
+                  )
+                : Image.asset(
+                    'assets/images/smart_attendance.png',
+                    fit: BoxFit.cover,
+                    width: 220,
+                  )),
       ),
     );
   }

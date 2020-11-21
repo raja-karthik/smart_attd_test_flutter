@@ -25,11 +25,13 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime selectedMonth;
   var monthAttenceRes = {};
   var punchInOutHistory;
+  String totalHrsDisplay;
   // bool _loadingIndicator = false;
   var len;
   var len2;
   var len3;
   var totalDaysPresent;
+  var totalHrsPresent;
   var totalHrs;
   bool _showLoading = true;
 
@@ -109,6 +111,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
           setState(() {
             monthAttenceRes = dates;
+            totalHrsPresent = res['data']['date_hrs'];
             totalDaysPresent = res['data']['days'];
             totalHrs = res['data']['hrs'];
           });
@@ -319,10 +322,12 @@ class _CalendarPageState extends State<CalendarPage> {
         var actDate = length == 1
             ? '0${selectday.toString()}'
             : '${selectday.toString()}';
-        var inoutTime = monthAttenceRes[actDate]['v'];
-        print(inoutTime);
+
         setState(() {
-          punchInOutHistory = inoutTime;
+          punchInOutHistory = monthAttenceRes[actDate]['v'];
+          String tot = totalHrsPresent[actDate].toString();
+
+          totalHrsDisplay = tot.substring(0, tot.length - 3);
         });
       },
       markedDateMoreShowTotal:
@@ -475,7 +480,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                             ),
                                           ),
                                           Text(
-                                            'Hours: 0 Hrs',
+                                            'Hours: $totalHrsDisplay Hrs',
                                             style: GoogleFonts.montserrat(
                                               color: Colors.grey,
                                             ),
