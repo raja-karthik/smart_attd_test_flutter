@@ -4,8 +4,8 @@ import 'dart:io' as Io;
 import 'package:camera/camera.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_first_flutterapp/home_page.dart';
-import 'package:my_first_flutterapp/main.dart';
+import './home_page.dart';
+import './main.dart';
 import 'package:http/http.dart' as http;
 import 'package:page_transition/page_transition.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,6 +20,7 @@ class CameraPage extends StatefulWidget {
 }
 
 class _CameraPageState extends State<CameraPage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   String imagePath;
   bool _toggleCamera = true;
   CameraController controller;
@@ -59,6 +60,7 @@ class _CameraPageState extends State<CameraPage> {
     final size = MediaQuery.of(context).size;
     final deviceRatio = size.width / size.height;
     return Scaffold(
+        key: _scaffoldKey,
         body: _showLoading
             ? Center(
                 child: CircularProgressIndicator(),
@@ -421,6 +423,10 @@ class _CameraPageState extends State<CameraPage> {
         }
       }
     } else {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Service Unreachable'),
+        duration: Duration(milliseconds: 2000),
+      ));
       print('RES CODE = ${res['status']}');
       Navigator.push(
         context,

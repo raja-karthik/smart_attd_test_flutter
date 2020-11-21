@@ -7,8 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:my_first_flutterapp/camera_page.dart';
-import 'package:my_first_flutterapp/main.dart';
+import './camera_page.dart';
+import './main.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -24,6 +24,7 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   Completer<GoogleMapController> _controller = Completer();
   List<Marker> _markers = [];
   String latitudeData = '';
@@ -149,6 +150,10 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         _showLoading = false;
       });
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Service Unreachable'),
+        duration: Duration(milliseconds: 2000),
+      ));
     }
   }
 
@@ -257,6 +262,7 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
+      key: _scaffoldKey,
       // appBar: AppBar(title: Text('Map Page')),
       body: _showLoading
           ? Center(

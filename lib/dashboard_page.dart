@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_first_flutterapp/home_page.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './main.dart';
+import './home_page.dart';
 import './map_page.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -17,6 +17,7 @@ class DashboardHomePage extends StatefulWidget {
 
 class _DashboardHomePageState extends State<DashboardHomePage>
     with SingleTickerProviderStateMixin {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   TabController _tabController;
   List months = [];
   List attendance = [];
@@ -188,6 +189,10 @@ class _DashboardHomePageState extends State<DashboardHomePage>
       setState(() {
         _showLoading = false;
       });
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Service Unreachable'),
+        duration: Duration(milliseconds: 2000),
+      ));
     }
   }
 
@@ -218,6 +223,7 @@ class _DashboardHomePageState extends State<DashboardHomePage>
     return DefaultTabController(
       length: months.length,
       child: Scaffold(
+          key: _scaffoldKey,
           appBar: AppBar(
             // elevation: 0,
             backgroundColor: Color(0xff0066ff),

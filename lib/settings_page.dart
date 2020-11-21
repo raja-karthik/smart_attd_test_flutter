@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_first_flutterapp/main.dart';
+import './main.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -99,11 +99,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   removeValues() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     prefs.clear();
-    // prefs.remove("selectedDay");
-    // prefs.remove("selectedMonth");
-    // prefs.remove("loggedin");
-    // prefs.remove("token");
   }
 }

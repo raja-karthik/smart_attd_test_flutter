@@ -5,15 +5,15 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_first_flutterapp/data.dart';
-import 'package:my_first_flutterapp/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import 'package:my_first_flutterapp/model/user_model.dart';
+import './data.dart';
+import './home_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:sms_otp_auto_verify/sms_otp_auto_verify.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:connectivity/connectivity.dart';
 
 class MyInAppBrowser extends InAppBrowser {
   @override
@@ -277,74 +277,14 @@ class SlideTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // padding: EdgeInsets.symmetric(horizontal: 20),
-      // alignment: Alignment.center,
-      // child:
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(imagePath),
           fit: BoxFit.cover,
         ),
       ),
-
-      // Column(
-      //   // mainAxisAlignment: MainAxisAlignment.center,
-      //   children: <Widget>[
-      //     Image.asset(
-      //       imagePath,
-      //       fit: BoxFit.cover,
-      //     ),
-      //     // SizedBox(
-      //     //   height: 40,
-      //     // ),
-      //     // Text(
-      //     //   title,
-      //     //   textAlign: TextAlign.center,
-      //     //   style: GoogleFonts.montserrat(
-      //     //       fontWeight: FontWeight.w500, fontSize: 20),
-      //     // ),
-      //     // SizedBox(
-      //     //   height: 20,
-      //     // ),
-      //     // Text(
-      //     //   desc,
-      //     //   textAlign: TextAlign.center,
-      //     //   style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-      //     // )
-      //   ],
-      // ),
     );
   }
-}
-
-Widget _letsgoBtn(context) {
-  return Container(
-    margin: EdgeInsets.only(top: 20),
-    child: FlatButton(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-      onPressed: () {
-        print('Get Started Pressed');
-        Navigator.push(
-          context,
-          PageTransition(
-            type: PageTransitionType.fade,
-            child: LoginPage(),
-          ),
-        );
-      },
-      color: Color(0xffFFFFFF),
-      child: Text(
-        "GET STARTED",
-        style: GoogleFonts.montserrat(
-            textStyle: TextStyle(
-          //fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: Color(0xff25BFFA),
-          letterSpacing: 2,
-        )),
-      ),
-    ),
-  );
 }
 
 class LoginPage extends StatefulWidget {
@@ -354,7 +294,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  Future<LoginModel> _futureLogin;
   int _otpCodeLength = 4;
   bool _isLoadingButton = false;
   bool _isLoadingVerifyButton = false;
@@ -377,10 +316,57 @@ class _LoginPageState extends State<LoginPage> {
   Timer _timer;
   int _start = 30;
 
+  bool _noInternet = false;
+  String _connectionStatus = 'Unknown';
+  final Connectivity _connectivity = Connectivity();
+  StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
   @override
   void initState() {
     super.initState();
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
     _getSignatureCode();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initConnectivity() async {
+    ConnectivityResult result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print(e.toString());
+    }
+
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    if (result == ConnectivityResult.none) {
+      print('No Internet Connection');
+      setState(() {
+        _noInternet = true;
+      });
+    } else if (result == ConnectivityResult.wifi ||
+        result == ConnectivityResult.mobile) {
+      print('Internet Connection - Ok');
+      setState(() {
+        _noInternet = false;
+      });
+    }
   }
 
   void startTimer() {
@@ -404,34 +390,6 @@ class _LoginPageState extends State<LoginPage> {
   _getSignatureCode() async {
     String signature = await SmsRetrieved.getAppSignature();
     print("signature $signature");
-  }
-
-  Future<LoginModel> loginUser(String email, String password) async {
-    final http.Response response = await http.post(
-      'https://reqres.in/api/login',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'email': email,
-        'password': password,
-      }),
-    );
-    print('RES CODE = ${response.statusCode}');
-    if (response.statusCode == 200) {
-      // If the server did return a 201 CREATED response,
-      // then parse the JSON.
-      setState(() {
-        _isResendSeconds = true;
-      });
-      startTimer();
-
-      return LoginModel.fromJson(jsonDecode(response.body));
-    } else {
-      // If the server did not return a 201 CREATED response,
-      // then throw an exception.
-      throw Exception('Failed to load album');
-    }
   }
 
   _onSubmitOtp() {
@@ -486,12 +444,6 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
   Color gradientStart = Color(0xff25BFFA); //Change start gradient color here
   Color gradientEnd = Color(0xff83c5e0); //Change end gradient color here
   @override
@@ -502,37 +454,64 @@ class _LoginPageState extends State<LoginPage> {
         child: new Scaffold(
             key: _scaffoldKey,
             // resizeToAvoidBottomInset: false, //when keyboard opens, block the bg
-            body: Stack(children: [
-              Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/images/login_bg.png"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 40),
-                // color: Color(0xff25BFFA),
-                width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    // _logo(),
-                    AnimatedSwitcher(
-                        duration: Duration(milliseconds: 1000),
-                        child: _showOtpContainer != true
-                            ? Container(
-                                child: _loginFields(),
-                              )
-                            : Container(
-                                child: _otpFields(),
-                              )),
-                  ],
-                ),
-              ),
-            ])),
+            body: _noInternet == true
+                ? Container(
+                    padding: EdgeInsets.fromLTRB(40, 0, 40, 0),
+                    child: Center(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Opacity(
+                          opacity: 0.4,
+                          child: Container(
+                            child: Image.asset(
+                              'assets/images/grey_logo.png',
+                              fit: BoxFit.cover,
+                              width: 120,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          'No Internet Connection. Make sure that Wi-Fi or mobile data is turned on, then try again.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(color: Colors.grey),
+                        ),
+                      ],
+                    )),
+                  )
+                : Stack(children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("assets/images/login_bg.png"),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 40),
+                      // color: Color(0xff25BFFA),
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          AnimatedSwitcher(
+                              duration: Duration(milliseconds: 1000),
+                              child: _showOtpContainer != true
+                                  ? Container(
+                                      child: _loginFields(),
+                                    )
+                                  : Container(
+                                      child: _otpFields(),
+                                    )),
+                        ],
+                      ),
+                    ),
+                  ])),
       ),
     );
   }
@@ -801,10 +780,6 @@ class _LoginPageState extends State<LoginPage> {
 
     FocusScope.of(context).requestFocus(new FocusNode());
     _verifyMobNumb();
-    // if (!_validateMob && !_validateCode && isNextClicked) {
-    //   _showOtpContainer = true;
-    // }
-    //_verifyMobileCode();
   }
 
   _verifyMobNumb() async {
@@ -904,19 +879,6 @@ class _LoginPageState extends State<LoginPage> {
           ) ??
           false;
     }
-  }
-
-  _verifyMobileCode() {
-    print('GET OTP - Next Pressed');
-    setState(() {
-      if (!_validateMob && !_validateCode && isNextClicked) {
-        _futureLogin = loginUser(
-          phoneController.text,
-          verifyCodeController.text,
-        );
-      }
-      isNextClicked = true;
-    });
   }
 
   Widget _inputField(Icon prefixIcon, String hintText, bool isCode,
@@ -1103,39 +1065,6 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  Widget _logoText() {
-    return Container(
-        margin: EdgeInsets.fromLTRB(0, 10, 0, 50),
-        width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome',
-              textAlign: TextAlign.left,
-              style: GoogleFonts.montserrat(
-                  textStyle: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w400,
-                color: Colors.white,
-              )),
-            ),
-            SizedBox(
-              height: 5,
-            ),
-            Text(
-              'Verify to get One Time Password',
-              style: GoogleFonts.montserrat(
-                  textStyle: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.white,
-              )),
-            ),
-          ],
-        ));
-  }
-
   Widget _otpHeading() {
     return Container(
         margin: EdgeInsets.fromLTRB(0, 10, 0, 50),
@@ -1154,28 +1083,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ],
         ));
-  }
-
-  Widget _logo() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(0, 100, 0, 50),
-      child: Stack(
-        children: [
-          Positioned(
-            child: Container(
-              width: 100,
-              height: 122,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/smart_attendance.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          )
-        ],
-      ),
-    );
   }
 }
 
@@ -1209,7 +1116,7 @@ class _SplashPageState extends State<SplashPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     loggedin = prefs.getString('loggedin');
     print('LOGGED IN => $loggedin');
-    Future.delayed(Duration(seconds: 6), () {
+    Future.delayed(Duration(seconds: 3), () {
       if (loggedin == 'true') {
         Navigator.push(
           context,

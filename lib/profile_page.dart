@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:my_first_flutterapp/main.dart';
+import './main.dart';
 import 'package:http/http.dart' as http;
 
 class ProfilePage extends StatefulWidget {
@@ -12,6 +12,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   var profileData;
   var profileUrl;
   bool _showLoading = true;
@@ -105,6 +106,10 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _showLoading = false;
       });
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Service Unreachable'),
+        duration: Duration(milliseconds: 2000),
+      ));
     }
   }
 
@@ -127,6 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
           centerTitle: true,
           //elevation: 0,
@@ -156,24 +162,51 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       children: [
                         Container(
+                          padding: EdgeInsets.only(top: 20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                height: 300,
-                                width: double.infinity,
-                                child: profileUrl != null
-                                    ? Image.network(
-                                        "$profileUrl",
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.asset(
-                                        "assets/images/no_image.png",
-                                        fit: BoxFit.cover,
-                                      ),
+                              Center(
+                                child: CircleAvatar(
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      await showDialog(
+                                        context: context,
+                                        // builder: (_) => ImageDialog()
+                                        child: Dialog(
+                                          insetPadding: EdgeInsets.zero,
+                                          child: Container(
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            height: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            child: profileUrl != null
+                                                ? Image.network(
+                                                    "$profileUrl",
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Image.asset(
+                                                    "assets/images/no_image.png",
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  radius: 80.0,
+                                  backgroundImage: profileUrl != null
+                                      ? NetworkImage("$profileUrl")
+                                      : AssetImage(
+                                          "assets/images/no_image.png"),
+                                ),
                               ),
                               Container(
-                                // padding: EdgeInsets.fromLTRB(30, 30, 30, 20),
+                                padding: EdgeInsets.only(
+                                  top: 25,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

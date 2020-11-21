@@ -7,7 +7,7 @@ import 'package:flutter_calendar_carousel/classes/event_list.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_first_flutterapp/main.dart';
+import './main.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,6 +21,7 @@ List<DateTime> earlyDates = [];
 List<DateTime> absentDates = [];
 
 class _CalendarPageState extends State<CalendarPage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime currentDate = DateTime.now();
   DateTime selectedMonth;
   var monthAttenceRes = {};
@@ -178,6 +179,10 @@ class _CalendarPageState extends State<CalendarPage> {
       setState(() {
         _showLoading = false;
       });
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Service Unreachable'),
+        duration: Duration(milliseconds: 2000),
+      ));
     }
   }
 
@@ -338,6 +343,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
 
     return new Scaffold(
+      key: _scaffoldKey,
       appBar: new AppBar(
         centerTitle: true,
         //elevation: 0,
